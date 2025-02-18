@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 
 from app.friends.dao import FriendsDAO
 from app.friends.models import FriendStatus
+from app.friends.service import FriendRequestService
 from app.users.models import User
 from app.users.dependencies import TokenDepends
 
@@ -12,69 +13,105 @@ token_depends = TokenDepends()
 
 
 @router.post('/')
-async def create_friends(
-    user_received: int,
+async def send_friend_request(
+    user_received_id: int,
     user_data: User = Depends(token_depends.get_current_user)
 ):
-    await FriendsDAO.add(
+    await FriendRequestService.send_friend_request(
         user_sended_id=user_data.id,
-        user_received_id=user_received
+        user_received_id=user_received_id
     )
-
     return {'message': 'Friend request sent!'}
 
 
+@router.put('/accept')
+async def accept_friend_request(
+    user_sended_id: int,
+    user_data: User = Depends(token_depends.get_current_user)
+):
+    await FriendRequestService.accept_friend_request(
+        user_sended_id,
+        user_data.id
+    )
+    return {'message': 'Friend reqeust accepted'}
+
+
+@router.get('/pending')
+async def get_pending_requests(
+    user_data: User = Depends(token_depends.get_current_user)
+):
+    requests = await FriendRequestService.get_pending_requests(user_data.id)
+    return {'requests': requests}
+
+
 @router.get('/')
-async def get_friends():
-    return await FriendsDAO.find_all(status=FriendStatus.friends)
+async def passf():
+    pass
+
+# @router.post('/')
+# async def create_friends(
+#     user_received: int,
+#     user_data: User = Depends(token_depends.get_current_user)
+# ):
+#     await FriendsDAO.add(
+#         user_sended_id=user_data.id,
+#         user_received_id=user_received
+#     )
+
+#     return {'message': 'Friend request sent!'}
+
+
+# @router.get('/')
+# async def get_friends():
+#     return await FriendsDAO.find_all(status=FriendStatus.friends)
     
 
-@router.get('/pending-users')
-async def get_my_pending_users(
-    user_data: User = Depends(token_depends.get_current_user)
-):
-    users = await FriendsDAO.find_all(
-        user_received_id=user_data.id
-    )
+# @router.get('/pending-users')
+# async def get_my_pending_users(
+#     user_data: User = Depends(token_depends.get_current_user)
+# ):
+#     users = await FriendsDAO.find_all(
+#         user_received_id=user_data.id
+#     )
 
-    return {'users': users}
-
-
-@router.get('/pending-requests')
-async def get_my_pending_requests(
-    user_data: User = Depends(token_depends.get_current_user)
-):
-    users = await FriendsDAO.find_all(
-        user_sended_id=user_data.id
-    )
-
-    return {'users': users}
+#     return {'users': users}
 
 
-@router.put('/')
-async def update_friends(
-    status: FriendStatus,
-    user_sended_id: int,
-    user_received_id: int
-):
-    data = await FriendsDAO.update(
-        filter_by={user_received_id: user_received_id},
-        user_received_id=user_received_id,
-        user_sended_id=user_sended_id,
-        status=status
-    )
-    return {'data': data}
+# @router.get('/pending-requests')
+# async def get_my_pending_requests(
+#     user_data: User = Depends(token_depends.get_current_user)
+# ):
+#     users = await FriendsDAO.find_all(
+#         user_sended_id=user_data.id
+#     )
+
+#     return {'users': users}
 
 
-@router.put('/update-sended')
-async def update_sended_friends(
-    status: FriendStatus,
-    user_id: int,
-    user_data: User = Depends(token_depends.get_current_user),
-):
-    data = await FriendsDAO.update(
-        user_received_id=user_id,
-        user_sended_id=user_data.id,
-        status=status
-    )
-    return {'data': data}
+# @router.put('/')
+# async def update_friends(
+#     status: FriendStatus,
+#     user_sended_id: int,
+#     user_received_id: int
+# ):
+#     data = await FriendsDAO.update(
+#         filter_by={user_received_id: user_received_id},
+#         user_received_id=user_received_id,
+#         user_sended_id=user_sended_id,
+#         status=status
+#     )
+#     return {'data': data}
+
+
+# @router.put('/update-sended')
+# async def update_sended_friends(
+#     status: FriendStatus,
+#     user_id: int,
+#     user_data: User = Depends(token_depends.get_current_user),
+# ):
+#     data = await FriendsDAO.update(
+#         user_received_id=user_id,
+#         user_sended_id=user_data.id,
+#         status=status
+#     )
+#     return {'data': data}
