@@ -23,14 +23,14 @@ class BaseDAO:
             result = await session.execute(query)
             user = result.scalar_one_or_none()
             return user
-        
+
     @classmethod
     async def find_one_or_none(cls, **filter_by):
         async with async_session_maker() as session:
             query = select(cls.model).filter_by(**filter_by)
             result = await session.execute(query)
             return result.scalar_one_or_none()
-        
+
 
     @classmethod
     async def add(cls, **values):
@@ -44,7 +44,7 @@ class BaseDAO:
                     await session.rollback()
                     raise e
                 return new_instance
-            
+
 
     @classmethod
     async def update(cls, filter_by, **values):
@@ -52,7 +52,7 @@ class BaseDAO:
             async with session.begin():
                 query = (
                     alchemy_update(cls.model)
-                    .where(*[getattr(cls.model, k) == v for v, k in filter_by.items()])
+                    .where(*[getattr(cls.model, k) == v for k, v in filter_by.items()])
                     .values(**values)
                     .execution_options(synchronize_session="fetch")
                 )
@@ -63,13 +63,13 @@ class BaseDAO:
                     await session.rollback()
                     raise e
                 return result.rowcount
-            
+
 
     @classmethod
     async def delete(cls, delete_all: bool = False, **filter_by):
         if not delete_all and not filter_by:
             raise ValueError("Необходимо указать хотя бы один параметр для удаления.")
-        
+
         async with async_session_maker() as session:
             async with session.begin():
                 query = alchemy_delete(cls.model).filter_by(**filter_by)

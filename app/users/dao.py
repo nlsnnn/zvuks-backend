@@ -14,5 +14,6 @@ class UsersDAO(BaseDAO):
             query = select(cls.model).where(
                 cls.model.id.in_(ids)
             )
-            users = await session.execute(query)
+            result = await session.execute(query)
+            users = result.scalars().all()
             return users
