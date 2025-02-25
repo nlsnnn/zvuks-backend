@@ -25,7 +25,7 @@ async def get_pending_requests(
     user_data: User = Depends(token_depends.get_current_user)
 ):
     requests = await FriendRequestService.get_pending_requests(user_data.id)
-    return {'requests': requests}
+    return {'requests': [{'id': user.id, 'username': user.username} for user in requests]}
 
 
 @router.get('/sended')
@@ -33,7 +33,7 @@ async def get_sended_requests(
     user_data: User = Depends(token_depends.get_current_user)
 ):
     requests = await FriendRequestService.get_sended_requests(user_data.id)
-    return {'requests': requests}
+    return {'requests': [{'id': user.id, 'username': user.username} for user in requests]}
 
 
 @router.post('/')

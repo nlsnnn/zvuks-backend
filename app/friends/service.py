@@ -42,10 +42,17 @@ class FriendRequestService:
 
 
     async def _get_requests(user_id: int, field: str):
-        return await FriendsDAO.find_all(
+        requests = await FriendsDAO.find_all(
             **{field: user_id},
             status=FriendStatus.pending
         )
+        user_ids = [
+            request.user_sended_id if field == 'user_received_id' 
+            else request.user_received_id 
+            for request in requests
+        ]
+        users = await UsersDAO.find_all_users_by_ids(user_ids)
+        return users
 
 
     # Получение пользователей которые отправили заявку в друзья пользователю
