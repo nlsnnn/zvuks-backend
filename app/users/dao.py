@@ -17,3 +17,13 @@ class UsersDAO(BaseDAO):
             result = await session.execute(query)
             users = result.scalars().all()
             return users
+        
+    @classmethod
+    async def search_users(cls, query: str):
+        async with async_session_maker() as session:
+            search_query = f"%{query}%"
+            stmt = select(cls.model).where(
+                cls.model.username.ilike(search_query)
+            )
+            result = await session.execute(stmt)
+            return result.scalars().all()

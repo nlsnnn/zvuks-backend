@@ -59,3 +59,9 @@ async def get_all_users(user_data: User = Depends(token_depends.get_current_admi
 async def get_user(user_id: int, user_data: User = Depends(token_depends.get_current_admin_user)): 
     user = await UsersDAO.find_one_or_none_by_id(user_id)
     return {"user": user}
+
+
+@router.get("/user/search/")
+async def find_user(query: str, user_data: User = Depends(token_depends.get_current_user)):
+    users = await UsersDAO.search_users(query)
+    return {"users": [{'id': user.id, 'username': user.username} for user in users]}
