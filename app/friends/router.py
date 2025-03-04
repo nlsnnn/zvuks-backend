@@ -81,6 +81,7 @@ async def reject_friend_request(
         user_sended_id=request.user_sended_id,
         user_received_id=user_data.id
     )
+    return {'message': 'Friendship deleted'}
 
 
 @router.post('/delete')

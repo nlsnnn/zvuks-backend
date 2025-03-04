@@ -42,9 +42,9 @@ class FriendRequestService:
 
     @staticmethod
     async def reject_friend_request(user_sended_id: int, user_received_id: int):
+        friendship = await FriendsDAO.get_friendship(user_sended_id, user_received_id)
         return await FriendsDAO.delete(
-            user_sended_id=user_sended_id,
-            user_received_id=user_received_id
+            id=friendship.id
         )
 
 
