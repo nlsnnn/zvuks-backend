@@ -6,6 +6,24 @@ from app.users.dao import UsersDAO
 class FriendRequestService:
     @staticmethod
     async def send_friend_request(user_sended_id: int, user_received_id: int):
+        friendship = await FriendsDAO.get_friendship(user_received_id, user_sended_id)
+        
+        if friendship:
+            if friendship.status == FriendStatus.deleted:
+                return await FriendsDAO.update(
+                    filter_by={
+                        'id': friendship.id
+                    },
+                    status=FriendStatus.pending
+                )
+            if friendship.status in (FriendStatus.pending, FriendStatus.friends):
+                return False
+            
+        users = await UsersDAO.find_all_users_by_ids([user_received_id, user_sended_id])
+
+        if len(users) != 2:
+            return False
+        
         return await FriendsDAO.add(
             user_sended_id=user_sended_id,
             user_received_id=user_received_id,

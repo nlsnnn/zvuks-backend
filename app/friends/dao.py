@@ -25,6 +25,14 @@ class FriendsDAO(BaseDAO):
             )
             friendship = await session.execute(query)
             return friendship.scalar()
+        
+    @staticmethod
+    async def get_friendship_status(user_id: int, other_user_id: int):
+        friendship = await FriendsDAO.get_friendship(user_id, other_user_id)
+        if friendship:
+            return friendship.status.value
+        
+        return "none"
 
 
     @classmethod

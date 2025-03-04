@@ -63,5 +63,5 @@ async def get_user(user_id: int, user_data: User = Depends(token_depends.get_cur
 
 @router.get("/user/search/")
 async def find_user(query: str, user_data: User = Depends(token_depends.get_current_user)):
-    users = await UsersDAO.search_users(query)
-    return {"users": [{'id': user.id, 'username': user.username} for user in users]}
+    users = await UsersDAO.search_users_with_status(query, user_data.id)
+    return {"users": users}
