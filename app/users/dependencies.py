@@ -5,6 +5,7 @@ from jose import jwt, JWTError
 from app.config import get_auth_data
 from app.users.dao import UsersDAO
 from app.users.models import User
+from app.exceptions import *
 
 
 class TokenDepends:
@@ -18,7 +19,7 @@ class TokenDepends:
         """
         token = request.cookies.get('users_access_token')
         if not token: 
-            self.__http_exception("Токен не найден")
+            raise TokenNotFoundException
         return token
 
 
@@ -30,7 +31,7 @@ class TokenDepends:
             auth_data = get_auth_data()
             payload = jwt.decode(token, auth_data['secret_key'], algorithms=[auth_data['algorithm']])
         except JWTError:
-            self.__http_exception("Токен не валидный")
+            raise NoJwtException
         
         return payload
     
@@ -42,7 +43,7 @@ class TokenDepends:
         expire = payload.get('exp')
         expire_time = datetime.fromtimestamp(int(expire), tz=timezone.utc)
         if (not expire) or (expire_time < datetime.now(tz=timezone.utc)):
-            self.__http_exception('Токен истек')
+            raise TokenExpiredException
 
 
     async def get_current_user(self, request: Request) -> User | None:
@@ -55,7 +56,7 @@ class TokenDepends:
         
         user_id = int(payload.get('sub'))
         if not user_id:
-            self.__http_exception('Не найден ID пользователя')
+            raise NoUserIdException
         
         user = await UsersDAO.find_one_or_none_by_id(user_id)
         if not user:
@@ -68,10 +69,7 @@ class TokenDepends:
         current_user = await self.get_current_user(request)
         if current_user.is_admin:
             return current_user
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail='Недостаточно прав!' 
-        )
+        raise ForbiddenException
     
 
     def __http_exception(self, detail: str):
