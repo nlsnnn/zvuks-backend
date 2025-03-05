@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.users.router import router as user_router
 from app.music.router import router as music_router
 from app.friends.router import router as friends_router
+from app.chat.router import router as chat_router
 
 
 app = FastAPI()
@@ -34,3 +35,4 @@ async def ping():
 app.include_router(user_router)
 app.include_router(music_router)
 app.include_router(friends_router)
+app.include_router(chat_router)
