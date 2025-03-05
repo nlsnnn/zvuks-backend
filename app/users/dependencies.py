@@ -80,3 +80,6 @@ class TokenDepends:
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=detail
             )
+    
+
+token_depends = TokenDepends()
