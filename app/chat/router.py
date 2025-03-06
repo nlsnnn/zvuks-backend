@@ -1,3 +1,5 @@
+import asyncio
+from typing import Dict
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 from app.chat.dao import MessagesDAO
 from app.chat.schemas import MessageCreate, MessageRead
@@ -7,6 +9,26 @@ from app.users.models import User
 
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
+
+
+active_connections: Dict[int, WebSocket] = {}
+
+
+async def notify_user(user_id: int, message: dict):
+    if user_id in active_connections:
+        websocket = active_connections[user_id]
+        await websocket.send_json(message)
+
+
+@router.websocket("/ws/{user_id}")
+async def websocket_endpoint(websocket: WebSocket, user_id: int):
+    await websocket.accept()
+    active_connections[user_id] = websocket
+    try:
+        while True:
+            await asyncio.sleep(1)
+    except WebSocketDisconnect:
+        active_connections.pop(user_id, None)
 
 
 @router.get("/messages/{user_id}")
@@ -24,5 +46,12 @@ async def send_message(message: MessageCreate, user_data: User = Depends(token_d
         recipient_id=message.recipient_id,
         content=message.content
     )
+    message_data = {
+        'sender_id': user_data.id,
+        'recipient_id': message.recipient_id,
+        'content': message.content
+    }
+    await notify_user(user_data.id, message_data)
+    await notify_user(message.recipient_id, message_data)
 
     return {'recipient_id': message.recipient_id, 'content': message.content, 'status': 'ok', 'msg': 'Message saved!'}
