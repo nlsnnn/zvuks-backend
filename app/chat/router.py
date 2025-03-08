@@ -41,7 +41,7 @@ async def get_messages(user_id: int, user_data: User = Depends(token_depends.get
 
 @router.post("/messages", response_model=MessageCreate)
 async def send_message(message: MessageCreate, user_data: User = Depends(token_depends.get_current_user)):
-    await MessagesDAO.add(
+    message_orm = await MessagesDAO.add(
         sender_id=user_data.id,
         recipient_id=message.recipient_id,
         content=message.content
@@ -49,7 +49,8 @@ async def send_message(message: MessageCreate, user_data: User = Depends(token_d
     message_data = {
         'sender_id': user_data.id,
         'recipient_id': message.recipient_id,
-        'content': message.content
+        'content': message.content,
+        'created_at': str(message_orm.created_at)
     }
     await notify_user(user_data.id, message_data)
     await notify_user(message.recipient_id, message_data)
