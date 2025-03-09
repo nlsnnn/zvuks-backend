@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, File, Form, UploadFile
 
+from app.music.service import MusicService
 from app.users.dependencies import TokenDepends
 from app.music.schemas import SongUpdate
 from app.music.utils import save_song, validate_release_date
@@ -33,7 +34,8 @@ async def add_song(
 ) -> dict:
     release_date_dt = validate_release_date(release_date)
 
-    song_data = await save_song(song, cover, name, user_data.username)
+    # song_data = await save_song(song, cover, name, user_data.username)
+    song_data = await MusicService.save_song(song, cover, name, user_data.username)
 
     await SongDAO.add(
         name=name,
