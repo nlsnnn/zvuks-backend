@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, File, Form, UploadFile
+from aiohttp import ClientError
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi.responses import StreamingResponse
 
 from app.music.service import MusicService
 from app.users.dependencies import TokenDepends
@@ -21,7 +23,29 @@ async def get_all_songs():
 @router.get('/{song_id}/')
 async def get_song(song_id: int):
     song = await SongDAO.find_one_or_none_by_id(song_id)
-    return {'song': song}
+    if not song:
+        raise HTTPException(status_code=404, detail="Song not found")
+    
+    try:
+        file = await MusicService.get_song(song.path)
+    except ClientError as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving file from S3: {e}")
+
+    async def stream_file():
+        try:
+            async for chunk in file['Body'].iter_chunks():
+                yield chunk
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error streaming file: {e}")
+
+    return StreamingResponse(
+        stream_file(),
+        media_type="audio/mpeg",
+        headers={
+            "Content-Disposition": f"attachment; filename={song.name}"
+        }
+    )
+
 
 
 @router.post("/")
@@ -36,6 +60,7 @@ async def add_song(
 
     # song_data = await save_song(song, cover, name, user_data.username)
     song_data = await MusicService.save_song(song, cover, name, user_data.username)
+    duration = MusicService.get_audio_duration(song)
 
     await SongDAO.add(
         name=name,
