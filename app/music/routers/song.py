@@ -1,9 +1,10 @@
+from typing import Optional
 from aiohttp import ClientError
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
 from app.music.service import MusicService
 from app.users.dependencies import TokenDepends
-from app.music.schemas import SongUpdate
+from app.music.schemas import SongRead, SongUpdate
 from app.music.utils import save_song, validate_release_date
 from app.music.dao import SongDAO
 from app.users.models import User
@@ -15,9 +16,9 @@ router = APIRouter(prefix='/song', tags=['Song'])
 token_depends = TokenDepends()
 
 @router.get('/')
-async def get_all_songs():
-    songs = await SongDAO.find_all()
-    return {'songs': songs}
+async def get_all_songs(archive: Optional[bool] = False):
+    data = await MusicService.get_songs(archive)
+    return {'songs': data}
 
 
 @router.get('/{song_id}/')
@@ -25,8 +26,7 @@ async def get_song(song_id: int):
     song = await SongDAO.find_one_or_none_by_id(song_id)
     if not song:
         raise HTTPException(status_code=404, detail="Song not found")
-    
-    
+
     return {'song_path': song.path, 'cover_path': song.cover_path}
 
 

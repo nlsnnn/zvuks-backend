@@ -15,5 +15,16 @@ class AlbumAdd(BaseModel):
 
 
 class SongUpdate(BaseModel):
-    name: str = Field(description='Название песни')  
+    name: str = Field(description='Название песни')
     release_date: datetime = Field(description='Дата релиза песни')
+
+
+class SongRead(BaseModel):
+    id: int
+    name: str
+    path: str
+    cover_path: str
+    release_date: str | datetime
+    duration: int | float
+    is_archive: bool
+    author: str

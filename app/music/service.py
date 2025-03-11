@@ -4,13 +4,45 @@ from mutagen.mp3 import MP3
 from fastapi import UploadFile
 
 from app.config import get_s3_client
+from app.music.dao import SongDAO
+from app.music.schemas import SongRead
+from app.users.dao import UsersDAO
 
 
 class MusicService:
     @staticmethod
+    async def get_songs(archive: bool = False):
+        songs = await SongDAO.find_all(**{
+            "is_archive": archive
+        })
+
+        author_ids = [song.user_id for song in songs]
+        authors = await UsersDAO.find_all_users_by_ids(author_ids)
+        data = []
+
+        for i in range(len(songs)):
+            song = songs[i]
+            author = authors[i]
+            data.append(
+                SongRead(
+                    id=song.id,
+                    name=song.name,
+                    path=song.path,
+                    cover_path=song.cover_path,
+                    release_date=song.release_date,
+                    duration=song.duration,
+                    is_archive=song.is_archive,
+                    author=author.username
+                )
+            )
+
+        return data
+
+
+    @staticmethod
     async def save_song(song: UploadFile, cover: UploadFile, song_name: str, username: str) -> dict:
-        directory = datetime.now().strftime(f'uploads/songs/%Y-%m-%d/{username}')
-        
+        directory = datetime.now().strftime(f'uploads/songs/%Y-%m-%d/{username}/{song_name}')
+
         song_format = song.filename.split('.')[-1]
         cover_format = cover.filename.split('.')[-1]
 
@@ -31,19 +63,12 @@ class MusicService:
 
     @staticmethod
     async def get_song(path: str):
-        # async with aiohttp.ClientSession() as session:
-        #     async with session.get(f'https://storage.yandexcloud.net/zvuks-backet/{path}') as resp:
-        #         # print(resp.status)
-        #         print(f'{resp=}')
-        #         print(await resp.text())
-        #         return resp.content
-
         s3_client = get_s3_client()
         file = await s3_client.get_file(path)
         print(f'{file=}')
         print(f'{type(file)=}')
         return file
-    
+
 
     @staticmethod
     def get_audio_duration(file) -> float:
