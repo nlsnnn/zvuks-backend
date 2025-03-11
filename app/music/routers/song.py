@@ -1,6 +1,5 @@
 from aiohttp import ClientError
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
-from fastapi.responses import StreamingResponse
 
 from app.music.service import MusicService
 from app.users.dependencies import TokenDepends
@@ -8,6 +7,7 @@ from app.music.schemas import SongUpdate
 from app.music.utils import save_song, validate_release_date
 from app.music.dao import SongDAO
 from app.users.models import User
+from app.config import settings
 
 
 router = APIRouter(prefix='/song', tags=['Song'])
@@ -26,26 +26,10 @@ async def get_song(song_id: int):
     if not song:
         raise HTTPException(status_code=404, detail="Song not found")
     
-    try:
-        file = await MusicService.get_song(song.path)
-    except ClientError as e:
-        raise HTTPException(status_code=500, detail=f"Error retrieving file from S3: {e}")
-
-    async def stream_file():
-        try:
-            async for chunk in file['Body'].iter_chunks():
-                yield chunk
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error streaming file: {e}")
-
-    return StreamingResponse(
-        stream_file(),
-        media_type="audio/mpeg",
-        headers={
-            "Content-Disposition": f"attachment; filename={song.name}"
-        }
-    )
-
+    song_path = settings.s3.endpoint + "/" + settings.s3.bucket_name + "/" + song.path
+    cover_path = settings.s3.endpoint + "/" + settings.s3.bucket_name + "/" + song.cover_path
+    
+    return {'song_path': song_path, 'cover_path': cover_path}
 
 
 @router.post("/")
@@ -58,19 +42,19 @@ async def add_song(
 ) -> dict:
     release_date_dt = validate_release_date(release_date)
 
-    # song_data = await save_song(song, cover, name, user_data.username)
     song_data = await MusicService.save_song(song, cover, name, user_data.username)
-    duration = MusicService.get_audio_duration(song)
+    duration = MusicService.get_audio_duration(song.file)
 
-    await SongDAO.add(
+    song_orm = await SongDAO.add(
         name=name,
         path=song_data['song_path'],
         cover_path=song_data['cover_path'],
         release_date=release_date_dt,
+        duration=duration,
         user_id=user_data.id
     )
 
-    return {"name": name, "data": song_data}
+    return {"id": song_orm.id, "name": name, "data": song_data}
 
 
 @router.put('/{song_id}/')
