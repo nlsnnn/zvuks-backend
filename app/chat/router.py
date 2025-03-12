@@ -1,4 +1,3 @@
-import asyncio
 from typing import Dict
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 from app.chat.dao import MessagesDAO
@@ -28,7 +27,7 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
     active_connections[user_id] = websocket
     try:
         while True:
-            await asyncio.sleep(1)
+            await websocket.receive()
     except WebSocketDisconnect:
         active_connections.pop(user_id, None)
     finally:

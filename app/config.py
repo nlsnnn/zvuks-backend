@@ -1,4 +1,5 @@
 import os
+import redis
 from pathlib import Path
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -6,7 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from app.services.s3 import S3Client
 
 
-BASE_DIR = Path(__file__).parent.parent
+BASE_DIR = Path(__file__).parent
 
 
 class DatabaseConfig(BaseModel):
@@ -29,6 +30,13 @@ class S3Config(BaseModel):
     endpoint: str = "https://storage.yandexcloud.net"
 
 
+class RedisConfig(BaseModel):
+    host: str
+    port: int
+    username: str
+    password: str
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=os.path.join(BASE_DIR, ".env"),
@@ -40,6 +48,7 @@ class Settings(BaseSettings):
     db: DatabaseConfig
     jwt: JWTConfig
     s3: S3Config
+    redis: RedisConfig
 
 
 settings = Settings()
@@ -61,6 +70,15 @@ def get_s3_client() -> S3Client:
         secret_key=settings.s3.secret_key,
         bucket_name=settings.s3.bucket_name,
         endpoint_url=settings.s3.endpoint,
+    )
+
+
+def get_redis_client():
+    return redis.asyncio.Redis(
+        host=settings.redis.host,
+        port=settings.redis.port,
+        username=settings.redis.username,
+        password=settings.redis.password
     )
 
 
