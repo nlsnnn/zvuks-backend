@@ -1,37 +1,29 @@
-from typing import Dict
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 from app.chat.dao import MessagesDAO
 from app.chat.schemas import MessageCreate, MessageRead
 from app.users.dependencies import token_depends
 from app.users.models import User
+from app.chat.websocket import WebSocketManager, get_websocket_manager
 
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
 
-active_connections: Dict[int, WebSocket] = {}
-
-
-async def notify_user(user_id: int, message: dict):
-    if user_id in active_connections:
-        websocket = active_connections[user_id]
-        try:
-            await websocket.send_json(message)
-        except WebSocketDisconnect:
-            active_connections.pop(user_id, None)
-
-
 @router.websocket("/ws/{user_id}")
-async def websocket_endpoint(websocket: WebSocket, user_id: int):
+async def websocket_endpoint(
+    websocket: WebSocket, 
+    user_id: int,
+    maganer: WebSocketManager = Depends(get_websocket_manager)    
+):
     await websocket.accept()
-    active_connections[user_id] = websocket
+    await maganer.add_connection(user_id, websocket)
     try:
         while True:
-            await websocket.receive()
+            await websocket.receive_text()
     except WebSocketDisconnect:
-        active_connections.pop(user_id, None)
+        await maganer.remove_connection(user_id)
     finally:
-        active_connections.pop(user_id, None)
+        await maganer.remove_connection(user_id)
 
 
 @router.get("/messages/{user_id}")
@@ -43,7 +35,11 @@ async def get_messages(user_id: int, user_data: User = Depends(token_depends.get
 
 
 @router.post("/messages", response_model=MessageCreate)
-async def send_message(message: MessageCreate, user_data: User = Depends(token_depends.get_current_user)):
+async def send_message(
+    message: MessageCreate, 
+    user_data: User = Depends(token_depends.get_current_user),
+    manager: WebSocketManager = Depends(get_websocket_manager)    
+):
     message_orm = await MessagesDAO.add(
         sender_id=user_data.id,
         recipient_id=message.recipient_id,
@@ -56,9 +52,7 @@ async def send_message(message: MessageCreate, user_data: User = Depends(token_d
         'created_at': str(message_orm.created_at)
     }
 
-    if user_data.id in active_connections:
-        await notify_user(user_data.id, message_data)
-    if message.recipient_id in active_connections:
-        await notify_user(message.recipient_id, message_data)
+    await manager.notify_user(user_data.id, message_data)
+    await manager.notify_user(message.recipient_id, message_data)
 
     return {'recipient_id': message.recipient_id, 'content': message.content, 'status': 'ok', 'msg': 'Message saved!'}
