@@ -17,12 +17,16 @@ class MusicService:
         })
 
         author_ids = [song.user_id for song in songs]
-        authors = await UsersDAO.find_all_users_by_ids(author_ids)
+        authors = list(await UsersDAO.find_all_users_by_ids(author_ids))
         data = []
 
         for i in range(len(songs)):
             song = songs[i]
             author = authors[i]
+
+            if song.user_id == author.id: # TODO переделать алгоритм 
+                authors.insert(i, author)
+            
             data.append(
                 SongRead(
                     id=song.id,
