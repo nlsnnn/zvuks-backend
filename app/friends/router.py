@@ -90,7 +90,7 @@ async def delete_friend(
     user_data: User = Depends(token_depends.get_current_user)
 ):
     await FriendRequestService.delete_friend(
-        request.user_sended_id,
+        request.user_id,
         user_data.id
     )
     return {'message': 'Friend deleted'}
