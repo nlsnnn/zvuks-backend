@@ -1,6 +1,7 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 from app.chat.dao import MessagesDAO
 from app.chat.schemas import MessageCreate, MessageRead
+from app.users.dao import UsersDAO
 from app.users.dependencies import token_depends
 from app.users.models import User
 from app.chat.websocket import WebSocketManager, get_websocket_manager
@@ -28,10 +29,14 @@ async def websocket_endpoint(
 
 @router.get("/messages/{user_id}")
 async def get_messages(user_id: int, user_data: User = Depends(token_depends.get_current_user)):
-    return await MessagesDAO.get_messages_between_users(
+    messages = await MessagesDAO.get_messages_between_users(
         f_user_id=user_id,
         s_user_id=user_data.id
-    ) or []
+    )
+    
+    user = await UsersDAO.find_one_or_none(**{"id": user_id})
+    
+    return {'username': user.username, 'messages': messages}
 
 
 @router.post("/messages", response_model=MessageCreate)
