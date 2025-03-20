@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from app.music.service import MusicService
 from app.users.dependencies import TokenDepends
 from app.music.schemas import SongRead, SongUpdate
-from app.music.utils import save_song, validate_release_date
+from app.music.utils import get_directory_name, save_song, validate_release_date
 from app.music.dao import SongDAO
 from app.users.models import User
 from app.config import settings
@@ -40,10 +40,12 @@ async def add_song(
 ) -> dict:
     release_date_dt = validate_release_date(release_date)
 
-    song_data = await MusicService.save_song(song, cover, name, user_data.username)
+    directory = get_directory_name(name, user_data.username, user_data.id)
+    cover_path = await MusicService.upload_cover(cover, name, directory)
+    song_path = await MusicService.save_song(song, name, directory)
 
-    song_path = settings.s3.endpoint + "/" + settings.s3.bucket_name + "/" + song_data['song_path']
-    cover_path = settings.s3.endpoint + "/" + settings.s3.bucket_name + "/" + song_data['cover_path']
+    song_path = settings.s3.endpoint + "/" + settings.s3.bucket_name + "/" + song_path
+    cover_path = settings.s3.endpoint + "/" + settings.s3.bucket_name + "/" + cover_path
 
     song_orm = await SongDAO.add(
         name=name,
@@ -53,7 +55,7 @@ async def add_song(
         user_id=user_data.id
     )
 
-    return {"id": song_orm.id, "name": name, "data": song_data}
+    return {"id": song_orm.id, "name": name, 'path': song_path, 'cover_path': cover_path}
 
 
 @router.put('/{song_id}/')

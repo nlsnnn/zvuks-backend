@@ -81,3 +81,10 @@ def validate_song_format(song: str):
             detail='Неверный формат файла. Нужен mp3!'
         )
     
+
+def get_directory_name(name: str, username: str, id: int | str = None):
+    return datetime.now().strftime(f'uploads/songs/%Y-%m-%d/{username}/{name}')
+
+
+def get_file_format(file):
+    return file.filename.split('.')[-1]
