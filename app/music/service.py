@@ -1,6 +1,5 @@
 import asyncio
 from datetime import datetime
-from mutagen.mp3 import MP3
 from fastapi import UploadFile
 
 from app.config import get_s3_client
@@ -34,7 +33,6 @@ class MusicService:
                     path=song.path,
                     cover_path=song.cover_path,
                     release_date=song.release_date,
-                    duration=song.duration,
                     is_archive=song.is_archive,
                     author=author.username
                 )
@@ -69,12 +67,4 @@ class MusicService:
     async def get_song(path: str):
         s3_client = get_s3_client()
         file = await s3_client.get_file(path)
-        print(f'{file=}')
-        print(f'{type(file)=}')
         return file
-
-
-    @staticmethod
-    def get_audio_duration(file) -> float:
-        audio = MP3(file)
-        return audio.info.length

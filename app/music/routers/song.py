@@ -41,7 +41,6 @@ async def add_song(
     release_date_dt = validate_release_date(release_date)
 
     song_data = await MusicService.save_song(song, cover, name, user_data.username)
-    duration = MusicService.get_audio_duration(song.file)
 
     song_path = settings.s3.endpoint + "/" + settings.s3.bucket_name + "/" + song_data['song_path']
     cover_path = settings.s3.endpoint + "/" + settings.s3.bucket_name + "/" + song_data['cover_path']
@@ -51,7 +50,6 @@ async def add_song(
         path=song_path,
         cover_path=cover_path,
         release_date=release_date_dt,
-        duration=duration,
         user_id=user_data.id
     )
 

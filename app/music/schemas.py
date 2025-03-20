@@ -25,6 +25,5 @@ class SongRead(BaseModel):
     path: str
     cover_path: str
     release_date: str | datetime
-    duration: int | float
     is_archive: bool
     author: str
