@@ -1,14 +1,13 @@
 from typing import Optional
-from aiohttp import ClientError
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
 from app.music.service import MusicService
 from app.users.dependencies import TokenDepends
-from app.music.schemas import SongRead, SongUpdate
-from app.music.utils import get_directory_name, save_song, validate_release_date
+from app.music.schemas import SongUpdate
+from app.music.utils import MusicUtils
 from app.music.dao import SongDAO
 from app.users.models import User
-from app.config import settings
+from app.config import get_s3_base_url
 
 
 router = APIRouter(prefix='/song', tags=['Song'])
@@ -38,14 +37,15 @@ async def add_song(
   cover: UploadFile = File(description='Обложка песни'),
   user_data: User = Depends(token_depends.get_current_user)
 ) -> dict:
-    release_date_dt = validate_release_date(release_date)
+    release_date_dt = MusicUtils.validate_release_date(release_date)
 
-    directory = get_directory_name(name, user_data.username, user_data.id)
+    directory = MusicUtils.get_song_directory_name(name, user_data.username, user_data.id)
     cover_path = await MusicService.upload_cover(cover, name, directory)
-    song_path = await MusicService.save_song(song, name, directory)
+    song_path = await MusicService.save_song(song, directory)
 
-    song_path = settings.s3.endpoint + "/" + settings.s3.bucket_name + "/" + song_path
-    cover_path = settings.s3.endpoint + "/" + settings.s3.bucket_name + "/" + cover_path
+    base_path = get_s3_base_url()
+    song_path = f"{base_path}/{song_path}"
+    cover_path = f"{base_path}/{cover_path}"
 
     song_orm = await SongDAO.add(
         name=name,

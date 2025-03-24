@@ -1,9 +1,10 @@
 from typing import List
 from fastapi import APIRouter, Depends, File, Form, UploadFile
 
+from app.config import get_s3_base_url
 from app.music.service import MusicService
 from app.users.dependencies import TokenDepends
-from app.music.utils import get_directory_name, validate_release_date
+from app.music.utils import MusicUtils
 from app.music.dao import AlbumDAO
 from app.users.models import User
 
@@ -34,13 +35,21 @@ async def add_album(
     songs: List[UploadFile] = File(description='Файлы песен'),
     user_data: User = Depends(token_depends.get_current_user)
 ) -> dict:
-    date = validate_release_date(release_date)
+    date = MusicUtils.validate_release_date(release_date)
     
-    directory = get_directory_name(name, user_data.username, user_data.id)
+    directory = MusicUtils.get_album_directory_name(name, user_data.username, user_data.id)
     cover_path = await MusicService.upload_cover(cover, name, directory)
-    album = await MusicService.create_album(name, cover_path, date, user_data.id)
+    absolute_cover_path = get_s3_base_url() + "/" + cover_path
+    album = await MusicService.create_album(name, absolute_cover_path, date, user_data.id)
 
-    data = await MusicService.save_album_songs(songs, cover_path, album.id, name, directory)
+    data = await MusicService.save_album_songs(
+        songs, 
+        absolute_cover_path, 
+        album.id, 
+        user_data.id, 
+        name, 
+        directory
+    )
 
     return {
         "album": {

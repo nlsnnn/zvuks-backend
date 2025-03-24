@@ -24,6 +24,6 @@ class SongRead(BaseModel):
     name: str
     path: str
     cover_path: str
-    release_date: str | datetime
+    release_date: str | datetime | None = Field(default=None)
     is_archive: bool
     author: str

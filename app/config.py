@@ -84,3 +84,6 @@ def get_redis_client():
 
 def get_song_path():
     pass
+
+def get_s3_base_url():
+    return f"{settings.s3.endpoint}/{settings.s3.bucket_name}"
