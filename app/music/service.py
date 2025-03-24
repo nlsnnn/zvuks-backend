@@ -88,6 +88,21 @@ class MusicService:
         s3_client = get_s3_client()
         file = await s3_client.get_file(path)
         return file
+    
+
+    @staticmethod
+    async def upload_file(file: UploadFile, directory: str, allowed_formats: list[str]):
+        file_format = MusicUtils.get_file_format(file)
+        if file_format not in allowed_formats:
+            return HTTPException(400, f"Недопустимый формат файла: {file_format}")
+        
+        file_content = await file.read()
+        filename = f"{uuid.uuid4()}/{file_format}"
+        path = f"{directory}/{filename}"
+
+        s3_client = get_s3_client()
+        await s3_client.upload_file(file_content, path)
+        return f"{get_s3_base_url()}/{path}"
 
 
     @staticmethod
@@ -118,17 +133,17 @@ class MusicService:
         cover_path: str, 
         album_id: int, 
         user_id: int,
-        name: str, 
+        song_names: list[str],
         directory: str
     ):
         songs_added = []
         
-        for song in songs:
+        for i, song in enumerate(songs):
             song_path = await MusicService.save_song(song, directory)
             absolute_song_path = get_s3_base_url() + "/" + song_path
 
             song_orm = await SongDAO.add(
-                name=name,
+                name=song_names[i],
                 path=absolute_song_path,
                 cover_path=cover_path,
                 album_id=album_id,

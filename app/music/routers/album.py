@@ -1,7 +1,6 @@
-from typing import List
-from fastapi import APIRouter, Depends, File, Form, UploadFile
+from fastapi import APIRouter, Depends
 
-from app.config import get_s3_base_url
+from app.music.schemas import AlbumCreate
 from app.music.service import MusicService
 from app.users.dependencies import TokenDepends
 from app.music.utils import MusicUtils
@@ -29,25 +28,31 @@ async def get_album(album_id: int):
 
 @router.post('/')
 async def add_album(
-    name: str = Form(description='Название альбома'),
-    release_date: str = Form(description='Дата релиза альбома (YYYY-MM-DDTHH:MM)'),
-    cover: UploadFile = File(description='Обложка альбома'),
-    songs: List[UploadFile] = File(description='Файлы песен'),
+    album_data: AlbumCreate = Depends(),
     user_data: User = Depends(token_depends.get_current_user)
 ) -> dict:
-    date = MusicUtils.validate_release_date(release_date)
+    # date = MusicUtils.validate_release_date(release_date)
     
-    directory = MusicUtils.get_album_directory_name(name, user_data.username, user_data.id)
-    cover_path = await MusicService.upload_cover(cover, name, directory)
-    absolute_cover_path = get_s3_base_url() + "/" + cover_path
-    album = await MusicService.create_album(name, absolute_cover_path, date, user_data.id)
+    name = album_data.name
+    directory = MusicUtils.get_directory_name('albums', name, user_data)
+    cover_path = await MusicService.upload_file(
+        album_data.cover, 
+        directory,
+        ['jpg', 'jpeg', 'png']
+    )
+    album = await MusicService.create_album(
+        name, 
+        cover_path, 
+        album_data.release_date, 
+        user_data.id
+    )
 
     data = await MusicService.save_album_songs(
-        songs, 
-        absolute_cover_path, 
+        album_data.songs, 
+        cover_path, 
         album.id, 
         user_data.id, 
-        name, 
+        album_data.song_names, 
         directory
     )
 
@@ -55,7 +60,7 @@ async def add_album(
         "album": {
             "id": album.id,
             "name": name,
-            "release_date": date,
+            "release_date": album_data.release_date,
             "songs": data
         }
     }

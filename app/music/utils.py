@@ -2,17 +2,18 @@ from fastapi import HTTPException, UploadFile
 from datetime import datetime
 from dateutil import parser
 
+from app.users.models import User
+
 
 class MusicUtils:
     @staticmethod
-    def get_directory_name(type: str, name: str, username: str, id: int | str = None):
-        return datetime.now().strftime(f'uploads/{type}/%Y-%m-%d/{username}/{name}')
-
-    def get_song_directory_name(name: str, username: str, id: int | None):
-        return MusicUtils.get_directory_name('songs', name, username, id)
-    
-    def get_album_directory_name(name: str, username: str, id: int | None):
-        return MusicUtils.get_directory_name('albums', name, username, id)
+    def get_directory_name(type_: str, name: str, user: User):
+        return (
+            f"uploads/{type_}"
+            f"{datetime.now().strftime('%Y-%m-%d')}/"
+            f"{user.username}_{user.id}/"
+            f"{name}"
+        )
     
     def get_file_format(file: UploadFile):
         return file.filename.split('.')[-1]

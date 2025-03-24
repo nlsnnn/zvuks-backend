@@ -39,13 +39,16 @@ async def add_song(
 ) -> dict:
     release_date_dt = MusicUtils.validate_release_date(release_date)
 
-    directory = MusicUtils.get_song_directory_name(name, user_data.username, user_data.id)
-    cover_path = await MusicService.upload_cover(cover, name, directory)
+    directory = MusicUtils.get_directory_name('songs', name, user_data)
+    cover_path = await MusicService.upload_file(
+        cover, 
+        directory,
+        ['jpg', 'jpeg', 'png']
+    )
     song_path = await MusicService.save_song(song, directory)
 
     base_path = get_s3_base_url()
     song_path = f"{base_path}/{song_path}"
-    cover_path = f"{base_path}/{cover_path}"
 
     song_orm = await SongDAO.add(
         name=name,
