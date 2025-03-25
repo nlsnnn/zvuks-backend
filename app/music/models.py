@@ -25,6 +25,7 @@ class Song(Base):
     path: Mapped[str]
     cover_path: Mapped[str]
     release_date: Mapped[datetime] = mapped_column(nullable=True)
+    track_number: Mapped[int] = mapped_column(nullable=True)
     is_archive: Mapped[bool] = mapped_column(
         default=False, server_default=text('false')
     )
