@@ -26,7 +26,7 @@ async def get_album(album_id: int):
 
 @router.post('/')
 async def add_album(
-    album_data: AlbumCreate = Depends(),
+    album_data: AlbumCreate = Depends(AlbumCreate.as_form),
     user_data: User = Depends(token_depends.get_current_user)
 ) -> dict:
     album, songs = await AlbumService.add_album(album_data, user_data)

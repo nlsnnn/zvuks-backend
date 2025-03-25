@@ -54,6 +54,7 @@ class AlbumService:
         album_id: int, 
         user_id: int,
         song_names: list[str],
+        track_numbers: list[int],
         directory: str
     ):
         songs_added = []
@@ -67,6 +68,7 @@ class AlbumService:
 
             song_orm = await SongDAO.add(
                 name=song_names[i],
+                track_number=track_numbers[i],
                 path=song_path,
                 cover_path=cover_path,
                 album_id=album_id,
