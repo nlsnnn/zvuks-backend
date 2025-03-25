@@ -1,10 +1,8 @@
 from fastapi import APIRouter, Depends
 
-from app.music.schemas import AlbumCreate
-from app.music.service import MusicService
+from app.music.album import AlbumDAO, AlbumCreate
+from app.music.album.service import AlbumService
 from app.users.dependencies import TokenDepends
-from app.music.utils import MusicUtils
-from app.music.dao import AlbumDAO
 from app.users.models import User
 
 
@@ -31,37 +29,14 @@ async def add_album(
     album_data: AlbumCreate = Depends(),
     user_data: User = Depends(token_depends.get_current_user)
 ) -> dict:
-    # date = MusicUtils.validate_release_date(release_date)
-    
-    name = album_data.name
-    directory = MusicUtils.get_directory_name('albums', name, user_data)
-    cover_path = await MusicService.upload_file(
-        album_data.cover, 
-        directory,
-        ['jpg', 'jpeg', 'png']
-    )
-    album = await MusicService.create_album(
-        name, 
-        cover_path, 
-        album_data.release_date, 
-        user_data.id
-    )
-
-    data = await MusicService.save_album_songs(
-        album_data.songs, 
-        cover_path, 
-        album.id, 
-        user_data.id, 
-        album_data.song_names, 
-        directory
-    )
+    album, songs = await AlbumService.add_album(album_data, user_data)
 
     return {
         "album": {
             "id": album.id,
-            "name": name,
+            "name": album_data.name,
             "release_date": album_data.release_date,
-            "songs": data
+            "songs": songs
         }
     }
 

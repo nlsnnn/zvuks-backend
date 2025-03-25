@@ -1,11 +1,9 @@
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 
-from app.music.service import MusicService
+from app.music.song.service import SongService
 from app.users.dependencies import TokenDepends
-from app.music.schemas import SongCreate, SongUpdate
-from app.music.utils import MusicUtils
-from app.music.dao import SongDAO
+from app.music.song import SongCreate, SongUpdate, SongDAO
 from app.users.models import User
 
 
@@ -15,7 +13,7 @@ token_depends = TokenDepends()
 
 @router.get('/')
 async def get_all_songs(archive: Optional[bool] = False):
-    data = await MusicService.get_songs(archive)
+    data = await SongService.get_songs(archive)
     return {'songs': data}
 
 
@@ -33,29 +31,12 @@ async def add_song(
     song_data: SongCreate = Depends(SongCreate.as_form), 
     user_data: User = Depends(token_depends.get_current_user)
 ) -> dict:
-    name = song_data.name
-
-    directory = MusicUtils.get_directory_name('songs', name, user_data)
-    cover_path = await MusicService.upload_file(
-        song_data.cover, 
-        directory,
-        ['jpg', 'jpeg', 'png']
-    )
-    song_path = await MusicService.upload_file(
-        song_data.song,
-        directory,
-        ['mp3', 'wav']
+    data = await SongService.add_song(
+        song_data, 
+        user_data
     )
 
-    song_orm = await SongDAO.add(
-        name=name,
-        path=song_path,
-        cover_path=cover_path,
-        release_date=song_data.release_date,
-        user_id=user_data.id
-    )
-
-    return {"id": song_orm.id, "name": name, 'path': song_path, 'cover_path': cover_path}
+    return {"id": data.id, "name": song_data.name, 'path': data.path, 'cover_path': data.cover_path}
 
 
 @router.put('/{song_id}/')

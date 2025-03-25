@@ -1,11 +1,9 @@
-from typing import Annotated
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.users.router import router as user_router
-from app.music.router import router as music_router
 from app.friends.router import router as friends_router
 from app.chat.router import router as chat_router
+from app.music import music_router
 
 
 app = FastAPI()
