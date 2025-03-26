@@ -30,6 +30,7 @@ class AlbumService:
             album.id, 
             user_data.id, 
             album_data.song_names, 
+            album_data.track_numbers,
             directory
         )
 

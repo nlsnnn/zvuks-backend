@@ -62,7 +62,7 @@ class MusicService:
             return HTTPException(400, f"Недопустимый формат файла: {file_format}")
         
         file_content = await file.read()
-        filename = f"{uuid.uuid4()}/{file_format}"
+        filename = f"{uuid.uuid4()}.{file_format}"
         path = f"{directory}/{filename}"
 
         s3_client = get_s3_client()

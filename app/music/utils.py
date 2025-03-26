@@ -9,7 +9,7 @@ class MusicUtils:
     @staticmethod
     def get_directory_name(type_: str, name: str, user: User):
         return (
-            f"uploads/{type_}"
+            f"uploads/{type_}/"
             f"{datetime.now().strftime('%Y-%m-%d')}/"
             f"{user.username}_{user.id}/"
             f"{name}"
