@@ -2,12 +2,46 @@ from fastapi import UploadFile
 
 from app.music.service import MusicService
 from app.music.utils import MusicUtils
-from app.music.album import AlbumDAO, AlbumCreate
+from app.music.album import AlbumDAO, AlbumCreate, AlbumRead
 from app.music.song import SongDAO
 from app.users.models import User
 
 
 class AlbumService:
+    @staticmethod
+    async def get_album(id: int):
+        album = await AlbumDAO.find_one_or_none_by_id(id)
+        data = AlbumRead(
+            id=album.id,
+            name=album.name,
+            release_date=album.release_date,
+            cover_path=album.cover_path,
+        )
+        return data
+    
+
+    @staticmethod
+    async def get_all_albums(archive: bool = False):
+        albums = await AlbumDAO.find_all(is_archive=archive)
+        data = [
+            AlbumRead(
+                id=album.id,
+                name=album.name,
+                release_date=album.release_date,
+                cover_path=album.cover_path                
+            )
+            for album in albums
+        ]
+        return data
+    
+
+    @staticmethod
+    async def get_album_songs(album_id: int):
+        songs = await SongDAO.find_all(album_id=album_id)
+        data = await MusicService.get_songs_dto(songs)
+        return data
+
+
     @staticmethod
     async def add_album(album_data: AlbumCreate, user_data: User):
         name = album_data.name

@@ -13,15 +13,20 @@ token_depends = TokenDepends()
 
 @router.get('/')
 async def get_all_albums():
-    albums = await AlbumDAO.find_all()
-    print(f'{albums=}')
+    albums = await AlbumService.get_all_albums()
     return {'albums': albums}
 
 
-@router.get('/{album_id}/')
+@router.get('/{album_id}')
 async def get_album(album_id: int):
-    album = await AlbumDAO.find_one_or_none_by_id(album_id)
+    album = await AlbumService.get_album(album_id)
     return {'album': album}
+
+
+@router.get('/{album_id}/songs')
+async def get_album_songs(album_id: int):
+    songs = await AlbumService.get_album_songs(album_id)
+    return {'songs': songs}
 
 
 @router.post('/')

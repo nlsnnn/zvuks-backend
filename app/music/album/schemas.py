@@ -1,7 +1,15 @@
+from datetime import datetime
 from fastapi import File, Form, UploadFile
-from pydantic import field_validator
+from pydantic import BaseModel, field_validator
 
 from app.music.schemas import MusicCreate, CoverCreate
+
+
+class AlbumRead(BaseModel):
+    id: int
+    name: str
+    release_date: str | datetime
+    cover_path: str 
 
 
 class AlbumCreate(MusicCreate, CoverCreate):
