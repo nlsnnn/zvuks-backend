@@ -19,7 +19,7 @@ class FriendRequestService:
             if friendship.status in (FriendStatus.pending, FriendStatus.friends):
                 return False
             
-        users = await UsersDAO.find_all_users_by_ids([user_received_id, user_sended_id])
+        users = await UsersDAO.find_all_by_ids([user_received_id, user_sended_id])
 
         if len(users) != 2:
             return False
@@ -69,7 +69,7 @@ class FriendRequestService:
             else request.user_received_id 
             for request in requests
         ]
-        users = await UsersDAO.find_all_users_by_ids(user_ids)
+        users = await UsersDAO.find_all_by_ids(user_ids)
         return users
 
 
@@ -91,5 +91,5 @@ class FriendRequestService:
         if not friends_ids:
             return []
 
-        users = await UsersDAO.find_all_users_by_ids(friends_ids)
+        users = await UsersDAO.find_all_by_ids(friends_ids)
         return users

@@ -25,7 +25,7 @@ class SongService:
             song_data.song, directory, ["mp3", "wav"]
         )
 
-        artists = await UsersDAO.find_all_users_by_ids(song_data.artist_ids)
+        artists = await UsersDAO.find_all_by_ids(song_data.artist_ids)
 
         song_orm = await SongDAO.add(
             name=name,

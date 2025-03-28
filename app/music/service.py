@@ -14,7 +14,7 @@ class MusicService:
     async def get_songs_dto(songs: list[Song]):
         data = []
         for song in songs:
-            artists = await UsersDAO.find_all_users_by_ids(
+            artists = await UsersDAO.find_all_by_ids(
                 [artist.id for artist in song.artists]
             )
             artist_names = [artist.username for artist in artists]

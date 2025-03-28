@@ -8,16 +8,6 @@ from app.database import async_session_maker
 class UsersDAO(BaseDAO):
     model = User
 
-
-    @classmethod
-    async def find_all_users_by_ids(cls, ids: list[int]):
-        async with async_session_maker() as session:
-            query = select(cls.model).where(
-                cls.model.id.in_(ids)
-            )
-            result = await session.execute(query)
-            users = result.scalars().all()
-            return users
         
     @classmethod
     async def search_users(cls, query: str):
