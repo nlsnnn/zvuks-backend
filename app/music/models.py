@@ -47,13 +47,15 @@ class SongArtist(Base):
     artist_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
 
 
-class UserAddSong(Base):
-    id: Mapped[int_pk]
-    user_id: Mapped[User] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    song_id: Mapped[Song] = mapped_column(ForeignKey("songs.id", ondelete="CASCADE"))
+class FavoriteSong(Base):
+    __tablename__ = "favorite_songs"
+
+    user_id: Mapped[User] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    song_id: Mapped[Song] = mapped_column(ForeignKey("songs.id", ondelete="CASCADE"), primary_key=True)
 
 
-class UserAddAlbum(Base):
-    id: Mapped[int_pk]
-    user_id: Mapped[User] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    album_id: Mapped[Album] = mapped_column(ForeignKey("albums.id", ondelete="CASCADE"))
+class FavoriteAlbum(Base):
+    __tablename__ = "favorite_albums"
+
+    user_id: Mapped[User] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    album_id: Mapped[Album] = mapped_column(ForeignKey("albums.id", ondelete="CASCADE"), primary_key=True)
