@@ -23,15 +23,7 @@ class AlbumService:
     @staticmethod
     async def get_all_albums(archive: bool = False):
         albums = await AlbumDAO.find_all(is_archive=archive)
-        data = [
-            AlbumRead(
-                id=album.id,
-                name=album.name,
-                release_date=album.release_date,
-                cover_path=album.cover_path                
-            )
-            for album in albums
-        ]
+        data = MusicService.get_albums_dto(albums)
         return data
     
 

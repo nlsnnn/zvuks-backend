@@ -3,7 +3,8 @@ from fastapi import HTTPException, UploadFile
 
 from app.config import get_s3_base_url, get_s3_client
 from app.music.album.dao import AlbumDAO
-from app.music.models import Song
+from app.music.album.schemas import AlbumRead
+from app.music.models import Song, Album
 from app.music.song import SongRead
 from app.music.utils import MusicUtils
 from app.users.dao import UsersDAO
@@ -30,6 +31,19 @@ class MusicService:
                     authors=", ".join(artist_names),
                 )
             )
+        return data
+    
+    @staticmethod
+    def get_albums_dto(albums: list[Album]):
+        data = [
+            AlbumRead(
+                id=album.id,
+                name=album.name,
+                release_date=album.release_date,
+                cover_path=album.cover_path                
+            )
+            for album in albums
+        ]
         return data
 
     @staticmethod

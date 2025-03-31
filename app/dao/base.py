@@ -17,11 +17,11 @@ class BaseDAO:
         
 
     @classmethod
-    async def find_all_by_ids(cls, ids: list[int]):
+    async def find_all_by_ids(cls, ids: list[int], **filter_by):
         async with async_session_maker() as session:
             query = select(cls.model).where(
                 cls.model.id.in_(ids)
-            )
+            ).filter_by(**filter_by)
             result = await session.execute(query)
             users = result.scalars().all()
             return users

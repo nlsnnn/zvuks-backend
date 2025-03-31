@@ -53,9 +53,17 @@ class FavoriteSong(Base):
     user_id: Mapped[User] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     song_id: Mapped[Song] = mapped_column(ForeignKey("songs.id", ondelete="CASCADE"), primary_key=True)
 
+    __mapper_args__ = {
+        "exclude_properties": {"updated_at"}
+    }
+
 
 class FavoriteAlbum(Base):
     __tablename__ = "favorite_albums"
 
     user_id: Mapped[User] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     album_id: Mapped[Album] = mapped_column(ForeignKey("albums.id", ondelete="CASCADE"), primary_key=True)
+
+    __mapper_args__ = {
+        "exclude_properties": {"updated_at"}
+    }
