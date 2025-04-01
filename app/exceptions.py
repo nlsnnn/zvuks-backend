@@ -31,3 +31,6 @@ NoUserIdException = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
 
 ForbiddenException = HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
                                    detail="Недостаточно прав!")
+
+AlreadyExistsException = HTTPException(status_code=status.HTTP_409_CONFLICT,
+                                       detail='Объект уже существует')
