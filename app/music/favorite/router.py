@@ -1,6 +1,7 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends
 
+from app.music.favorite.schemas import SFavoriteRequest
 from app.users.dependencies import TokenDepends
 from app.users.models import User
 from app.music.favorite.service import FavoriteService
@@ -29,13 +30,15 @@ async def get_favorite_albums(
 
 @router.post("/song", status_code=201)
 async def add_favorite_song(
-    song_id: int, user_data: Annotated[User, Depends(token_depends.get_current_user)]
+    data: SFavoriteRequest,
+    user_data: Annotated[User, Depends(token_depends.get_current_user)],
 ):
-    await FavoriteService.add_song(song_id, user_data.id)
+    await FavoriteService.add_song(data.song_id, user_data.id)
 
 
 @router.post("/album", status_code=201)
 async def add_favorite_album(
-    album_id: int, user_data: Annotated[User, Depends(token_depends.get_current_user)]
+    data: SFavoriteRequest,
+    user_data: Annotated[User, Depends(token_depends.get_current_user)],
 ):
-    await FavoriteService.add_album(album_id, user_data.id)
+    await FavoriteService.add_album(data.album_id, user_data.id)

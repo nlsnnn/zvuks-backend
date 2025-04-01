@@ -1,3 +1,4 @@
+from app.exceptions import AlreadyExistsException
 from app.music.song import SongDAO
 from app.music.album import AlbumDAO
 from app.music.service import MusicService
@@ -10,7 +11,7 @@ class FavoriteService:
         favorites = await FavoriteSongDAO.find_all(user_id=user_id)
         favorite_song_ids = [favorite.song_id for favorite in favorites]
         songs = await SongDAO.find_all_by_ids(favorite_song_ids, is_archive=False)
-        data = await MusicService.get_songs_dto(songs)
+        data = await MusicService.get_songs_dto(songs, user_id)
         return data
 
     @staticmethod
@@ -23,6 +24,13 @@ class FavoriteService:
 
     @staticmethod
     async def add_song(song_id: int, user_id: int):
+        song = await FavoriteSongDAO.find_one_or_none(
+            song_id=song_id,
+            user_id=user_id,
+        )
+        if song:
+            raise AlreadyExistsException
+        
         await FavoriteSongDAO.add(
             song_id=song_id,
             user_id=user_id

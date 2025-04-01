@@ -7,10 +7,10 @@ from app.users.models import User
 
 class SongService:
     @staticmethod
-    async def get_songs(archive: bool = False):
+    async def get_songs(archive: bool = False, user_id: int | None = None):
         songs = await SongDAO.find_all(**{"is_archive": archive})
 
-        data = await MusicService.get_songs_dto(songs)
+        data = await MusicService.get_songs_dto(songs, user_id)
         return data
 
     @staticmethod

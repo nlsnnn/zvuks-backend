@@ -4,6 +4,7 @@ from fastapi import HTTPException, UploadFile
 from app.config import get_s3_base_url, get_s3_client
 from app.music.album.dao import AlbumDAO
 from app.music.album.schemas import AlbumRead
+from app.music.favorite.dao import FavoriteSongDAO
 from app.music.models import Song, Album
 from app.music.song import SongRead
 from app.music.utils import MusicUtils
@@ -12,8 +13,14 @@ from app.users.dao import UsersDAO
 
 class MusicService:
     @staticmethod
-    async def get_songs_dto(songs: list[Song]):
+    async def get_songs_dto(songs: list[Song], user_id: int | None = None):
         data = []
+        favorite_song_ids = []
+
+        if user_id:
+            favorites = await FavoriteSongDAO.find_all(user_id=user_id)
+            favorite_song_ids = [fav.song_id for fav in favorites]
+
         for song in songs:
             artists = await UsersDAO.find_all_by_ids(
                 [artist.id for artist in song.artists]
@@ -28,6 +35,7 @@ class MusicService:
                     cover_path=song.cover_path,
                     release_date=song.release_date,
                     is_archive=song.is_archive,
+                    is_favorite=song.id in favorite_song_ids,
                     authors=", ".join(artist_names),
                 )
             )
