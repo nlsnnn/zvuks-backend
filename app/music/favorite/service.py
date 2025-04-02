@@ -38,7 +38,30 @@ class FavoriteService:
 
     @staticmethod
     async def add_album(album_id: int, user_id: int):
+        album = await FavoriteAlbumDAO.find_one_or_none(
+            album_id=album_id,
+            user_id=user_id
+        )
+        if album:
+            raise AlreadyExistsException
+
         await FavoriteAlbumDAO.add(
             album_id=album_id,
             user_id=user_id
+        )
+
+
+    @staticmethod
+    async def delete_song(song_id: int, user_id: int):
+        await FavoriteSongDAO.delete(
+            song_id=song_id,
+            user_id=user_id,
+        )
+
+
+    @staticmethod
+    async def delete_album(album_id: int, user_id: int):
+        await FavoriteAlbumDAO.delete(
+            album_id=album_id,
+            user_id=user_id,
         )

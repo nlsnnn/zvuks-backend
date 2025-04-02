@@ -42,3 +42,19 @@ async def add_favorite_album(
     user_data: Annotated[User, Depends(token_depends.get_current_user)],
 ):
     await FavoriteService.add_album(data.album_id, user_data.id)
+
+
+@router.delete("/song", status_code=204)
+async def remove_favorite_song(
+    data: SFavoriteRequest,
+    user_data: Annotated[User, Depends(token_depends.get_current_user)]
+):
+    await FavoriteService.delete_song(data.song_id, user_data.id)
+
+
+@router.delete("/album", status_code=204)
+async def remove_favorite_album(
+    data: SFavoriteRequest,
+    user_data: Annotated[User, Depends(token_depends.get_current_user)]
+):
+    await FavoriteService.delete_album(data.album_id, user_data.id)
