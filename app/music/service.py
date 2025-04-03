@@ -9,6 +9,7 @@ from app.music.models import Song, Album
 from app.music.song import SongRead
 from app.music.utils import MusicUtils
 from app.users.dao import UsersDAO
+from app.users.schemas import SUserRead
 
 
 class MusicService:
@@ -25,7 +26,9 @@ class MusicService:
             artists = await UsersDAO.find_all_by_ids(
                 [artist.id for artist in song.artists]
             )
-            artist_names = [artist.username for artist in artists]
+            artists_dto = [
+                SUserRead(id=artist.id, username=artist.username) for artist in artists
+            ]
 
             data.append(
                 SongRead(
@@ -36,11 +39,11 @@ class MusicService:
                     release_date=song.release_date,
                     is_archive=song.is_archive,
                     is_favorite=song.id in favorite_song_ids,
-                    authors=", ".join(artist_names),
+                    artists=artists_dto,
                 )
             )
         return data
-    
+
     @staticmethod
     def get_albums_dto(albums: list[Album]):
         data = [
@@ -48,7 +51,7 @@ class MusicService:
                 id=album.id,
                 name=album.name,
                 release_date=album.release_date,
-                cover_path=album.cover_path                
+                cover_path=album.cover_path,
             )
             for album in albums
         ]

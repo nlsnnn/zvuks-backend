@@ -3,6 +3,7 @@ from fastapi import File, Form, UploadFile
 from pydantic import BaseModel, Field, field_validator
 
 from app.music.schemas import MusicCreate, CoverCreate
+from app.users.schemas import SUserRead
 
 
 class SongUpdate(BaseModel):
@@ -18,7 +19,7 @@ class SongRead(BaseModel):
     release_date: str | datetime | None = Field(default=None)
     is_archive: bool
     is_favorite: bool
-    authors: str
+    artists: list[SUserRead]
 
 
 class SongCreate(MusicCreate, CoverCreate):
