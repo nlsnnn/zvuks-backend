@@ -1,6 +1,9 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
-class SFavoriteRequest(BaseModel):
-    song_id: int | None = Field(default=None)
-    album_id: int | None = Field(default=None)
+class SFavoriteSongRequest(BaseModel):
+    song_id: int
+
+
+class SFavoriteAlbumRequest(BaseModel):
+    album_id: int

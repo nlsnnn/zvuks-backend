@@ -1,7 +1,7 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends
 
-from app.music.favorite.schemas import SFavoriteRequest
+from app.music.favorite.schemas import SFavoriteAlbumRequest, SFavoriteSongRequest
 from app.users.dependencies import TokenDepends
 from app.users.models import User
 from app.music.favorite.service import FavoriteService
@@ -30,7 +30,7 @@ async def get_favorite_albums(
 
 @router.post("/song", status_code=201)
 async def add_favorite_song(
-    data: SFavoriteRequest,
+    data: SFavoriteSongRequest,
     user_data: Annotated[User, Depends(token_depends.get_current_user)],
 ):
     await FavoriteService.add_song(data.song_id, user_data.id)
@@ -38,7 +38,7 @@ async def add_favorite_song(
 
 @router.post("/album", status_code=201)
 async def add_favorite_album(
-    data: SFavoriteRequest,
+    data: SFavoriteAlbumRequest,
     user_data: Annotated[User, Depends(token_depends.get_current_user)],
 ):
     await FavoriteService.add_album(data.album_id, user_data.id)
@@ -46,15 +46,16 @@ async def add_favorite_album(
 
 @router.delete("/song", status_code=204)
 async def remove_favorite_song(
-    data: SFavoriteRequest,
+    data: SFavoriteSongRequest,
     user_data: Annotated[User, Depends(token_depends.get_current_user)]
 ):
+    print(f'{data=}')
     await FavoriteService.delete_song(data.song_id, user_data.id)
 
 
 @router.delete("/album", status_code=204)
 async def remove_favorite_album(
-    data: SFavoriteRequest,
+    data: SFavoriteAlbumRequest,
     user_data: Annotated[User, Depends(token_depends.get_current_user)]
 ):
     await FavoriteService.delete_album(data.album_id, user_data.id)
