@@ -27,7 +27,7 @@ class MusicService:
                 [artist.id for artist in song.artists]
             )
             artists_dto = [
-                SUserRead(id=artist.id, username=artist.username) for artist in artists
+                SUserRead(id=artist.id, username=artist.username, avatar=artist.avatar_path) for artist in artists
             ]
 
             data.append(

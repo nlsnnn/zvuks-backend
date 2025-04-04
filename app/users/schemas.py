@@ -15,6 +15,7 @@ class SUserAuth(BaseModel):
 class SUserRead(BaseModel):
     id: int
     username: str
+    avatar: str
 
 
 class SUserProfile(SUserRead):

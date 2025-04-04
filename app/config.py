@@ -87,3 +87,7 @@ def get_song_path():
 
 def get_s3_base_url():
     return f"{settings.s3.endpoint}/{settings.s3.bucket_name}"
+
+
+def get_default_avatar():
+    return f"{settings.s3.endpoint}/{settings.s3.bucket_name}/avatars/default.png"
