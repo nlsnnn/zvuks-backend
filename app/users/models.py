@@ -8,14 +8,12 @@ class User(Base):
     username: Mapped[str_uniq]
     email: Mapped[str_uniq]
     password: Mapped[str]
+    avatar_path: Mapped[str] = mapped_column(nullable=True)
 
     is_user: Mapped[bool] = mapped_column(
         default=True, server_default=text("true"), nullable=False
     )
     is_admin: Mapped[bool] = mapped_column(
-        default=False, server_default=text("false"), nullable=False
-    )
-    is_super_admin: Mapped[bool] = mapped_column(
         default=False, server_default=text("false"), nullable=False
     )
 
