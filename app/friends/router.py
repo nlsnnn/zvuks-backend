@@ -15,7 +15,6 @@ token_depends = TokenDepends()
 async def get_friends(
     user_data: User = Depends(token_depends.get_current_user)
 ):
-    print(f'{user_data=}')
     friends = await FriendRequestService.get_friends(user_data.id)
     return {'friends': friends}
 
@@ -25,7 +24,7 @@ async def get_pending_requests(
     user_data: User = Depends(token_depends.get_current_user)
 ):
     requests = await FriendRequestService.get_pending_requests(user_data.id)
-    return {'requests': [{'id': user.id, 'username': user.username} for user in requests]}
+    return {'requests': requests}
 
 
 @router.get('/sended')
@@ -33,7 +32,7 @@ async def get_sended_requests(
     user_data: User = Depends(token_depends.get_current_user)
 ):
     requests = await FriendRequestService.get_sended_requests(user_data.id)
-    return {'requests': [{'id': user.id, 'username': user.username} for user in requests]}
+    return {'requests': requests}
 
 
 @router.post('/')

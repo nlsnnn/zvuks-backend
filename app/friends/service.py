@@ -1,6 +1,7 @@
 from app.friends.dao import FriendsDAO
 from app.friends.models import FriendStatus
 from app.users.dao import UsersDAO
+from app.users.service import UserService
 
 
 class FriendRequestService:
@@ -70,7 +71,8 @@ class FriendRequestService:
             for request in requests
         ]
         users = await UsersDAO.find_all_by_ids(user_ids)
-        return users
+        data = UserService.get_users_dto(users)
+        return data
 
 
     # Получение пользователей которые отправили заявку в друзья пользователю
@@ -92,4 +94,5 @@ class FriendRequestService:
             return []
 
         users = await UsersDAO.find_all_by_ids(friends_ids)
-        return users
+        data = UserService.get_users_dto(users)
+        return data

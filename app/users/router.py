@@ -72,8 +72,8 @@ async def find_user(
     query: str, user_data: User = Depends(token_depends.get_current_user)
 ):
     users = await UsersDAO.search_users_with_status(query, user_data.id)
-    data = UserService.get_users_dto(users)
-    return {"users": data}
+    # data = UserService.get_users_dto(users)
+    return {"users": users}
 
 
 @router.get("/user/profile/{user_id}", response_model=SUserProfile)
