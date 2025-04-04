@@ -4,7 +4,13 @@ from app.users.auth import authenticate_user, create_access_token, get_password_
 from app.users.dao import UsersDAO
 from app.users.dependencies import TokenDepends
 from app.users.models import User
-from app.users.schemas import SUserAuth, SUserRegister, SUserProfile, SUserRead
+from app.users.schemas import (
+    SUserAuth,
+    SUserRegister,
+    SUserProfile,
+    SUserRead,
+    SUserUpdate,
+)
 from app.users.service import UserService
 
 
@@ -43,6 +49,15 @@ async def login_user(response: Response, user_data: SUserAuth) -> dict:
 async def logout_user(response: Response):
     response.delete_cookie(key="users_access_token")
     return {"message": "Пользователь успешно вышел из системы"}
+
+
+@router.post("/user/update")
+async def update_user(
+    data: SUserUpdate = Depends(SUserUpdate.as_form),
+    user_data: User = Depends(token_depends.get_current_user),
+):
+    data = await UserService.update_user(data, user_data)
+    return data
 
 
 @router.get("/me/")

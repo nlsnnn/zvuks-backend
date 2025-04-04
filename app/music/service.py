@@ -1,13 +1,11 @@
-import uuid
-from fastapi import HTTPException, UploadFile
+from fastapi import UploadFile
 
-from app.config import get_s3_base_url, get_s3_client
 from app.music.album.dao import AlbumDAO
 from app.music.album.schemas import AlbumRead
 from app.music.favorite.dao import FavoriteSongDAO
 from app.music.models import Song, Album
 from app.music.song import SongRead
-from app.music.utils import MusicUtils
+from app.services.utils import Utils
 from app.users.dao import UsersDAO
 from app.users.schemas import SUserRead
 
@@ -27,7 +25,10 @@ class MusicService:
                 [artist.id for artist in song.artists]
             )
             artists_dto = [
-                SUserRead(id=artist.id, username=artist.username, avatar=artist.avatar_path) for artist in artists
+                SUserRead(
+                    id=artist.id, username=artist.username, avatar=artist.avatar_path
+                )
+                for artist in artists
             ]
 
             data.append(
@@ -76,14 +77,5 @@ class MusicService:
 
     @staticmethod
     async def upload_file(file: UploadFile, directory: str, allowed_formats: list[str]):
-        file_format = MusicUtils.get_file_format(file)
-        if file_format not in allowed_formats:
-            return HTTPException(400, f"Недопустимый формат файла: {file_format}")
-
-        file_content = await file.read()
-        filename = f"{uuid.uuid4()}.{file_format}"
-        path = f"{directory}/{filename}"
-
-        s3_client = get_s3_client()
-        await s3_client.upload_file(file_content, path)
-        return f"{get_s3_base_url()}/{path}"
+        path = await Utils.upload_file(file, directory, allowed_formats)
+        return path
