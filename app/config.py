@@ -37,6 +37,13 @@ class RedisConfig(BaseModel):
     password: str
 
 
+class SMTPConfig(BaseModel):
+    host: str
+    port: int
+    username: str
+    password: str
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=os.path.join(BASE_DIR, ".env"),
@@ -49,6 +56,7 @@ class Settings(BaseSettings):
     jwt: JWTConfig
     s3: S3Config
     redis: RedisConfig
+    smtp: SMTPConfig
 
 
 settings = Settings()
