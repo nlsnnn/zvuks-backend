@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 from fastapi import Form, UploadFile
 from pydantic import BaseModel, EmailStr, Field
 
@@ -14,7 +14,7 @@ class SUserRegister(BaseModel):
 
 
 class SUserAuth(BaseModel):
-    email: EmailStr = Field(description="Электронная почта")
+    identifier: Union[str, EmailStr] = Field(description="Электронная почта или имя пользователя")
     password: str = Field(
         min_length=5, max_length=50, description="Пароль, от 5 до 50 знаков"
     )

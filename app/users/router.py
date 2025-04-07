@@ -36,7 +36,7 @@ async def register_user(user_data: SUserRegister) -> dict:
 
 @router.post("/login/")
 async def login_user(response: Response, user_data: SUserAuth) -> dict:
-    user = await authenticate_user(user_data.email, user_data.password)
+    user = await authenticate_user(user_data.identifier, user_data.password)
     if type(user) is str:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=user)
 
@@ -51,7 +51,7 @@ async def logout_user(response: Response):
     return {"message": "Пользователь успешно вышел из системы"}
 
 
-@router.post("/user/update")
+@router.post("/user/update", response_model=SUserRead)
 async def update_user(
     data: SUserUpdate = Depends(SUserUpdate.as_form),
     user_data: User = Depends(token_depends.get_current_user),
@@ -60,7 +60,7 @@ async def update_user(
     return data
 
 
-@router.get("/me/")
+@router.get("/me/", response_model=SUserRead)
 async def get_me(user_data: User = Depends(token_depends.get_current_user)):
     return UserService.get_user_dto(user_data)
 
@@ -73,7 +73,7 @@ async def get_all_users(
     return {"users": users}
 
 
-@router.get("/user/{user_id}")
+@router.get("/user/{user_id}", response_model=SUserRead)
 async def get_user(
     user_id: int, user_data: User = Depends(token_depends.get_current_admin_user)
 ):
@@ -87,7 +87,6 @@ async def find_user(
     query: str, user_data: User = Depends(token_depends.get_current_user)
 ):
     users = await UsersDAO.search_users_with_status(query, user_data.id)
-    # data = UserService.get_users_dto(users)
     return {"users": users}
 
 

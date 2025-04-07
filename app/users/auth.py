@@ -28,10 +28,12 @@ def create_access_token(data: dict) -> str:
     return encode_jwt
 
 
-async def authenticate_user(email: EmailStr, password: str) -> User | str:
-    user = await UsersDAO.find_one_or_none(email=email)
+async def authenticate_user(identifier: EmailStr | str, password: str) -> User | str:
+    user = await UsersDAO.find_one_or_none(email=identifier)
     if not user:
-        return "Пользователя не существует"
+        user = await UsersDAO.find_one_or_none(username=identifier)
+        if not user:
+            return "Пользователя не существует"
     if verify_password(plain_password=password, hashed_password=user.password) is False:
         return "Неверный пароль"
     return user 
