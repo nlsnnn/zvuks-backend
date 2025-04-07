@@ -1,11 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from app.config import get_default_avatar
-from app.users.auth import authenticate_user, create_access_token, get_password_hash
+from app.email.service import EmailService
+from app.exceptions import NoUserException
+from app.users.auth import authenticate_user, create_access_token, create_reset_password_token, get_password_hash, verify_reset_password_token
 from app.users.dao import UsersDAO
 from app.users.dependencies import TokenDepends
 from app.users.models import User
 from app.users.schemas import (
+    SPasswordReset,
     SUserAuth,
+    SPasswordResetRequest,
     SUserRegister,
     SUserProfile,
     SUserRead,
@@ -49,6 +53,30 @@ async def login_user(response: Response, user_data: SUserAuth) -> dict:
 async def logout_user(response: Response):
     response.delete_cookie(key="users_access_token")
     return {"message": "Пользователь успешно вышел из системы"}
+
+
+@router.post("/password-reset")
+async def request_password_reset(data: SPasswordResetRequest):
+    user = await UsersDAO.find_one_or_none(email=data.email)
+    if not user:
+        raise NoUserException
+    
+    token = create_reset_password_token(data.email)
+    reset_link = f"http://localhost:5173/reset-password?token={token}"
+    await EmailService.send_reset_password(user, reset_link)
+    return {"message": "Письмо для сброса пароля отправлено"}
+
+
+@router.post("/password-reset/confirm")
+async def reset_password(data: SPasswordReset):
+    email = verify_reset_password_token(data.token)
+    user = await UsersDAO.find_one_or_none(email=email)
+    if not user:
+        raise NoUserException
+    
+    hashed_password = get_password_hash(data.new_password)
+    await UsersDAO.update(filter_by={"email": email}, password=hashed_password)
+    return {"message": "Пароль успешно изменен"}
 
 
 @router.post("/user/update", response_model=SUserRead)

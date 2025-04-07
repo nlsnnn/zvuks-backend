@@ -20,6 +20,15 @@ class SUserAuth(BaseModel):
     )
 
 
+class SPasswordResetRequest(BaseModel):
+    email: EmailStr
+
+
+class SPasswordReset(BaseModel):
+    token: str
+    new_password: str
+
+
 class SUserUpdate(BaseModel):
     avatar: Optional[UploadFile] = Form(default=None)
 
@@ -31,7 +40,6 @@ class SUserUpdate(BaseModel):
         return cls(
             avatar=avatar
         )
-
 
 
 class SUserRead(BaseModel):

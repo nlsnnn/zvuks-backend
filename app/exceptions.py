@@ -34,3 +34,6 @@ ForbiddenException = HTTPException(status_code=status.HTTP_403_FORBIDDEN,
 
 AlreadyExistsException = HTTPException(status_code=status.HTTP_409_CONFLICT,
                                        detail='Объект уже существует')
+
+NoUserException = HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail="Пользователь не найден")
