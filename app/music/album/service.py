@@ -4,6 +4,7 @@ from app.music.service import MusicService
 from app.music.utils import MusicUtils
 from app.music.album import AlbumDAO, AlbumCreate, AlbumRead
 from app.music.song import SongDAO
+from app.users.dao import UsersDAO
 from app.users.models import User
 
 
@@ -50,6 +51,8 @@ class AlbumService:
             user_data.id
         )
 
+        artists = await UsersDAO.find_all_by_ids(album_data.artist_ids)
+
         songs = await AlbumService.save_album_songs(
             album_data.songs, 
             cover_path, 
@@ -57,7 +60,8 @@ class AlbumService:
             user_data.id, 
             album_data.song_names, 
             album_data.track_numbers,
-            directory
+            directory,
+            artists
         )
 
         return [album, songs]
@@ -82,7 +86,8 @@ class AlbumService:
         user_id: int,
         song_names: list[str],
         track_numbers: list[int],
-        directory: str
+        directory: str,
+        artists
     ):
         songs_added = []
         
@@ -99,7 +104,8 @@ class AlbumService:
                 path=song_path,
                 cover_path=cover_path,
                 album_id=album_id,
-                user_id=user_id
+                user_id=user_id,
+                artists=artists,
             )
 
             songs_added.append(song_orm)
