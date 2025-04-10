@@ -18,20 +18,17 @@ class UsersDAO(BaseDAO):
 
     @classmethod
     async def search_users_with_status(cls, query: str, current_user_id: int):
-        async with async_session_maker() as session:
-            users = await cls.search_users(query)
-            users_with_status = []
-            for user in users:
-                status = await FriendsDAO.get_friendship_status(
-                    current_user_id, user.id
-                )
-                users_with_status.append(
-                    {
-                        "id": user.id,
-                        "username": user.username,
-                        "avatar": user.avatar_path,
-                        "status": status,
-                    }
-                )
+        users = await cls.search_users(query)
+        users_with_status = []
+        for user in users:
+            status = await FriendsDAO.get_friendship_status(current_user_id, user.id)
+            users_with_status.append(
+                {
+                    "id": user.id,
+                    "username": user.username,
+                    "avatar": user.avatar_path,
+                    "status": status,
+                }
+            )
 
-            return users_with_status
+        return users_with_status
