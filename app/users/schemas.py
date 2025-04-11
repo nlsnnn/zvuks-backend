@@ -26,7 +26,7 @@ class SPasswordResetRequest(BaseModel):
 
 class SPasswordReset(BaseModel):
     token: str
-    new_password: str
+    new_password: str = Field(alias="newPassword")
 
 
 class SUserUpdate(BaseModel):

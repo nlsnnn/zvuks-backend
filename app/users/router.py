@@ -62,7 +62,7 @@ async def request_password_reset(data: SPasswordResetRequest):
         raise NoUserException
     
     token = create_reset_password_token(data.email)
-    reset_link = f"http://localhost:5173/reset-password?token={token}"
+    reset_link = f"http://localhost:5173/reset-password/confirm/{token}"
     await EmailService.send_reset_password(user, reset_link)
     return {"message": "Письмо для сброса пароля отправлено"}
 
