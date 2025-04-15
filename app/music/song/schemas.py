@@ -8,17 +8,17 @@ from app.users.schemas import SUserRead
 
 class SongUpdate(BaseModel):
     name: str = Field(description="Название песни")
-    release_date: datetime = Field(description="Дата релиза песни")
+    release_date: datetime = Field(description="Дата релиза песни", serialization_alias="releaseDate")
 
 
 class SongRead(BaseModel):
     id: int
-    name: str
+    name: str = Field(serialization_alias="title")
     path: str
-    cover_path: str
-    release_date: str | datetime | None = Field(default=None)
-    is_archive: bool
-    is_favorite: bool
+    cover_path: str = Field(serialization_alias="cover")
+    release_date: str | datetime | None = Field(default=None, serialization_alias="releaseDate")
+    is_archive: bool = Field(serialization_alias="archive")
+    is_favorite: bool = Field(serialization_alias="favorite")
     artists: list[SUserRead]
 
 
