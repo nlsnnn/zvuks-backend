@@ -1,4 +1,6 @@
 from typing import List
+from app.music.song.dao import SongDAO
+from app.music.service import MusicService
 from app.services.utils import Utils
 from app.users.dao import UsersDAO
 from app.users.models import User
@@ -22,7 +24,16 @@ class UserService:
 
     @staticmethod
     async def get_profile(user_data: User):
-        return UserService.get_user_dto(user_data)
+        songs = await SongDAO.find_all(user_id=user_data.id)
+        songs_dto = await MusicService.get_songs_dto(songs[:5])
+        data = SUserProfile(
+            id=user_data.id,
+            username=user_data.username,
+            avatar=user_data.avatar_path,
+            songs=songs_dto,
+        )
+
+        return data
 
     @staticmethod
     async def update_user(data: SUserUpdate, user: User):

@@ -49,6 +49,4 @@ class SUserRead(BaseModel):
 
 
 class SUserProfile(SUserRead):
-    pass
-
-
+    songs: list
