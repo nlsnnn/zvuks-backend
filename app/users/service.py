@@ -1,6 +1,7 @@
 from typing import List
-from app.music.song.dao import SongDAO
+from app.music.favorite.dao import FavoriteSongDAO
 from app.music.service import MusicService
+from app.music.song.dao import SongDAO
 from app.services.utils import Utils
 from app.users.dao import UsersDAO
 from app.users.models import User
@@ -24,7 +25,9 @@ class UserService:
 
     @staticmethod
     async def get_profile(user_data: User):
-        songs = await SongDAO.find_all(user_id=user_data.id)
+        favorites = await FavoriteSongDAO.find_all(user_id=user_data.id)
+        favorite_ids = [favorite.song_id for favorite in favorites]
+        songs = await SongDAO.find_all_by_ids(favorite_ids)
         songs_dto = await MusicService.get_songs_dto(songs[:5])
         data = SUserProfile(
             id=user_data.id,

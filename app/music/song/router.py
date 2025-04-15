@@ -12,7 +12,7 @@ router = APIRouter(prefix="/song", tags=["Song"])
 
 @router.get("/")
 async def get_all_songs(request: Request, archive: Optional[bool] = False):
-    data = await SongService.get_songs(archive)
+    data = await SongService.get_songs(request, archive)
     return {"songs": data}
 
 
