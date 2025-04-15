@@ -1,85 +1,78 @@
 from datetime import datetime, timezone
-from fastapi import Request, HTTPException, status, Depends
+from fastapi import Request
 from jose import jwt, JWTError
 
 from app.config import get_auth_data
 from app.users.dao import UsersDAO
 from app.users.models import User
-from app.exceptions import *
+from app.exceptions import (
+    TokenExpiredException,
+    TokenNotFoundException,
+    NoJwtException,
+    NoUserIdException,
+    ForbiddenException,
+    NoUserException,
+)
 
 
-class TokenDepends:
+def get_token(request: Request):
     """
-    Класс-зависимость для проверки пользователя
+    Получение токена из куков
     """
-
-    def _get_token(self, request: Request):
-        """
-        Получение токена из куков
-        """
-        token = request.cookies.get('users_access_token')
-        if not token: 
-            raise TokenNotFoundException
-        return token
+    token = request.cookies.get("users_access_token")
+    if not token:
+        raise TokenNotFoundException
+    return token
 
 
-    def _get_payload(self, token: str): 
-        """
-        Получение полезных данных с токена
-        """
-        try:
-            auth_data = get_auth_data()
-            payload = jwt.decode(token, auth_data['secret_key'], algorithms=[auth_data['algorithm']])
-        except JWTError:
-            raise NoJwtException
-        
-        return payload
-    
+def get_payload(token: str):
+    """
+    Получение полезных данных с токена
+    """
+    try:
+        auth_data = get_auth_data()
+        if auth_data["algorithm"] not in {"HS256", "HS384", "HS512"}:
+            raise ValueError("Недопустимый алгоритм JWT")
+        payload = jwt.decode(
+            token, auth_data["secret_key"], algorithms=[auth_data["algorithm"]]
+        )
+    except JWTError:
+        raise NoJwtException
 
-    def _check_time(self, payload: dict):
-        """
-        Проверка срока токена
-        """
-        expire = payload.get('exp')
-        expire_time = datetime.fromtimestamp(int(expire), tz=timezone.utc)
-        if (not expire) or (expire_time < datetime.now(tz=timezone.utc)):
-            raise TokenExpiredException
+    return payload
 
 
-    async def get_current_user(self, request: Request) -> User | None:
-        """
-        Зависимость (получение пользователя)
-        """
-        token = self._get_token(request)
-        payload = self._get_payload(token)
-        self._check_time(payload)
-        
-        user_id = int(payload.get('sub'))
-        if not user_id:
-            raise NoUserIdException
-        
-        user = await UsersDAO.find_one_or_none_by_id(user_id)
-        if not user:
-            self.__http_exception('Пользователь не найден')
-        
-        return user
-    
+def check_time(payload: dict):
+    """
+    Проверка срока токена
+    """
+    expire = payload.get("exp")
+    expire_time = datetime.fromtimestamp(int(expire), tz=timezone.utc)
+    if (not expire) or (expire_time < datetime.now(tz=timezone.utc)):
+        raise TokenExpiredException
 
-    async def get_current_admin_user(self, request: Request):
-        current_user = await self.get_current_user(request)
-        if current_user.is_admin:
-            return current_user
-        raise ForbiddenException
-    
 
-    def __http_exception(self, detail: str):
-        """
-        Вызов ошибки 401
-        """
-        raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=detail
-            )
-    
+async def get_current_user(request: Request) -> User | None:
+    """
+    Зависимость (получение пользователя)
+    """
+    token = get_token(request)
+    payload = get_payload(token)
+    check_time(payload)
 
-token_depends = TokenDepends()
+    user_id = int(payload.get("sub"))
+    if not user_id:
+        raise NoUserIdException
+
+    user = await UsersDAO.find_one_or_none_by_id(user_id)
+    if not user:
+        raise NoUserException
+
+    return user
+
+
+async def get_current_admin_user(request: Request):
+    current_user = await get_current_user(request)
+    if current_user.is_admin:
+        return current_user
+    raise ForbiddenException

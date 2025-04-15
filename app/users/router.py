@@ -2,9 +2,15 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from app.config import get_default_avatar
 from app.email.service import EmailService
 from app.exceptions import NoUserException
-from app.users.auth import authenticate_user, create_access_token, create_reset_password_token, get_password_hash, verify_reset_password_token
+from app.users.auth import (
+    authenticate_user,
+    create_access_token,
+    create_reset_password_token,
+    get_password_hash,
+    verify_reset_password_token,
+)
 from app.users.dao import UsersDAO
-from app.users.dependencies import TokenDepends
+from app.users.dependencies import get_current_user, get_current_admin_user
 from app.users.models import User
 from app.users.schemas import (
     SPasswordReset,
@@ -19,8 +25,6 @@ from app.users.service import UserService
 
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
-
-token_depends = TokenDepends()
 
 
 @router.post("/register/")
@@ -60,7 +64,7 @@ async def request_password_reset(data: SPasswordResetRequest):
     user = await UsersDAO.find_one_or_none(email=data.email)
     if not user:
         raise NoUserException
-    
+
     token = create_reset_password_token(data.email)
     reset_link = f"http://localhost:5173/reset-password?token={token}"
     await EmailService.send_reset_password(user, reset_link)
@@ -73,7 +77,7 @@ async def reset_password(data: SPasswordReset):
     user = await UsersDAO.find_one_or_none(email=email)
     if not user:
         raise NoUserException
-    
+
     hashed_password = get_password_hash(data.new_password)
     await UsersDAO.update(filter_by={"email": email}, password=hashed_password)
     return {"message": "Пароль успешно изменен"}
@@ -82,46 +86,40 @@ async def reset_password(data: SPasswordReset):
 @router.post("/user/update", response_model=SUserRead)
 async def update_user(
     data: SUserUpdate = Depends(SUserUpdate.as_form),
-    user_data: User = Depends(token_depends.get_current_user),
+    user_data: User = Depends(get_current_user),
 ):
     data = await UserService.update_user(data, user_data)
     return data
 
 
 @router.get("/me/", response_model=SUserRead)
-async def get_me(user_data: User = Depends(token_depends.get_current_user)):
+async def get_me(user_data: User = Depends(get_current_user)):
     return UserService.get_user_dto(user_data)
 
 
 @router.get("/all_users/")
 async def get_all_users(
-    user_data: User = Depends(token_depends.get_current_admin_user),
+    user_data: User = Depends(get_current_admin_user),
 ):
     users = await UsersDAO.find_all()
     return {"users": users}
 
 
 @router.get("/user/{user_id}", response_model=SUserRead)
-async def get_user(
-    user_id: int, user_data: User = Depends(token_depends.get_current_admin_user)
-):
+async def get_user(user_id: int, user_data: User = Depends(get_current_admin_user)):
     user = await UsersDAO.find_one_or_none_by_id(user_id)
     data = UserService.get_user_dto(user)
     return data
 
 
 @router.get("/user/search/")
-async def find_user(
-    query: str, user_data: User = Depends(token_depends.get_current_user)
-):
+async def find_user(query: str, user_data: User = Depends(get_current_user)):
     users = await UsersDAO.search_users_with_status(query, user_data.id)
     return {"users": users}
 
 
 @router.get("/user/profile/{user_id}", response_model=SUserProfile)
-async def get_user_profile(
-    user_id: int, user_data: User = Depends(token_depends.get_current_user)
-):
+async def get_user_profile(user_id: int, user_data: User = Depends(get_current_user)):
     profile_data = await UserService.get_profile(user_data)
 
     return profile_data
