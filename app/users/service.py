@@ -1,4 +1,5 @@
 from typing import List
+from app.exceptions import NoUserException
 from app.music.favorite.dao import FavoriteSongDAO
 from app.music.service import MusicService
 from app.music.song.dao import SongDAO
@@ -24,15 +25,18 @@ class UserService:
         return data
 
     @staticmethod
-    async def get_profile(user_data: User):
-        favorites = await FavoriteSongDAO.find_all(user_id=user_data.id)
+    async def get_profile(user_id: int):
+        user = await UsersDAO.find_one_or_none_by_id(user_id)
+        if not user:
+            raise NoUserException
+        favorites = await FavoriteSongDAO.find_all(user_id=user_id)
         favorite_ids = [favorite.song_id for favorite in favorites]
         songs = await SongDAO.find_all_by_ids(favorite_ids)
         songs_dto = await MusicService.get_songs_dto(songs[:5])
         data = SUserProfile(
-            id=user_data.id,
-            username=user_data.username,
-            avatar=user_data.avatar_path,
+            id=user.id,
+            username=user.username,
+            avatar=user.avatar_path,
             songs=songs_dto,
         )
 

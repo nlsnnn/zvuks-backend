@@ -29,5 +29,7 @@ class SongDAO(BaseDAO):
                 .options(selectinload(cls.model.artists))
             )
             result = await session.execute(query)
-            songs = result.scalars().all()
-            return songs
+            songs = list(result.scalars().all())
+            id_to_song = {song.id: song for song in songs}
+            sorted_songs = [id_to_song[id_] for id_ in ids if id_ in id_to_song]
+            return sorted_songs
