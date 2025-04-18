@@ -8,7 +8,9 @@ from app.users.schemas import SUserRead
 
 class SongUpdate(BaseModel):
     name: str = Field(description="Название песни")
-    release_date: datetime = Field(description="Дата релиза песни", serialization_alias="releaseDate")
+    release_date: datetime = Field(
+        description="Дата релиза песни", serialization_alias="releaseDate"
+    )
 
 
 class SongRead(BaseModel):
@@ -16,7 +18,9 @@ class SongRead(BaseModel):
     name: str = Field(serialization_alias="title")
     path: str
     cover_path: str = Field(serialization_alias="cover")
-    release_date: str | datetime | None = Field(default=None, serialization_alias="releaseDate")
+    release_date: str | datetime | None = Field(
+        default=None, serialization_alias="releaseDate"
+    )
     is_archive: bool = Field(serialization_alias="archive")
     is_favorite: bool = Field(serialization_alias="favorite")
     artists: list[SUserRead]
@@ -24,7 +28,7 @@ class SongRead(BaseModel):
 
 class SongCreate(MusicCreate, CoverCreate):
     song: UploadFile = File(...)
-    artist_ids: str = Form(...)
+    artist_ids: str = Form(alias="artistIds")
 
     @field_validator("artist_ids")
     def parse_artist_ids(cls, v):
@@ -34,10 +38,10 @@ class SongCreate(MusicCreate, CoverCreate):
     async def as_form(
         cls,
         name: str = Form(...),
-        release_date: str = Form(...),
+        release_date: str = Form(alias="releaseDate"),
         song: UploadFile = File(...),
         cover: UploadFile = File(...),
-        artist_ids: str = Form(...),
+        artist_ids: str = Form(alias="artistIds"),
     ):
         return cls(
             name=name,

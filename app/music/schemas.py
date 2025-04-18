@@ -6,12 +6,12 @@ from app.music.utils import MusicUtils
 
 class MusicCreate(BaseModel):
     name: str = Form(...)
-    release_date: str = Form(...)
+    release_date: str = Form(alias="releaseDate")
 
-    @field_validator('release_date')
+    @field_validator("release_date")
     def validate_date(cls, v):
         return MusicUtils.validate_release_date(v)
-    
+
 
 class CoverCreate(BaseModel):
     cover: UploadFile = File(...)
