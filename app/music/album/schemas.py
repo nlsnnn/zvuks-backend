@@ -1,16 +1,18 @@
 import json
 from datetime import datetime
 from fastapi import File, Form, UploadFile
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.music.schemas import MusicCreate, CoverCreate
+from app.users.schemas import SUserRead
 
 
 class AlbumRead(BaseModel):
     id: int
-    name: str
-    release_date: str | datetime
-    cover_path: str
+    name: str = Field(serialization_alias="title")
+    release_date: str | datetime = Field(serialization_alias="releaseDate")
+    cover_path: str = Field(serialization_alias="cover")
+    artist: SUserRead
 
 
 class AlbumCreate(MusicCreate, CoverCreate): # TODO: refactor

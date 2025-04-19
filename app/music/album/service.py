@@ -7,6 +7,7 @@ from app.music.album import AlbumDAO, AlbumCreate, AlbumRead
 from app.music.song import SongDAO
 from app.users.dao import UsersDAO
 from app.users.models import User
+from app.users.schemas import SUserRead
 
 
 class AlbumService:
@@ -17,12 +18,18 @@ class AlbumService:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Альбом не найден"
             )
+        author = await UsersDAO.find_one_or_none_by_id(album.user_id)
 
         data = AlbumRead(
             id=album.id,
             name=album.name,
             release_date=album.release_date,
             cover_path=album.cover_path,
+            artist=SUserRead(
+                id=author.id,
+                username=author.username,
+                avatar=author.avatar_path
+            )
         )
         return data
 
