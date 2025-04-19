@@ -1,6 +1,7 @@
+import json
 from datetime import datetime
 from fastapi import File, Form, UploadFile
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel
 
 from app.music.schemas import MusicCreate, CoverCreate
 
@@ -12,29 +13,43 @@ class AlbumRead(BaseModel):
     cover_path: str
 
 
-class AlbumCreate(MusicCreate, CoverCreate):
+class AlbumCreate(MusicCreate, CoverCreate): # TODO: refactor
     songs: list[UploadFile]
     song_names: list[str]
-    track_numbers: list[str]
-    artist_ids: str
-
-    @field_validator("track_numbers")
-    def parse_track_numbers(cls, v):
-        return [int(num) for num in v]
+    track_numbers: list[int]
+    song_artists_ids: list[list[int]]
 
     @classmethod
     async def as_form(
         cls,
-        name: str = Form(...),
-        release_date: str = Form(...),
+        name: str = Form(alias="title"),
+        release_date: str = Form(alias="releaseDate"),
         cover: UploadFile = File(...),
         songs: list[UploadFile] = File(...),
-        song_names: list[str] = Form(...),
-        track_numbers: list[str] = Form(...),
-        artists_ids: str = Form(...),
+        song_names: list[str] = Form(alias="songNames"),
+        track_numbers: list[int] = Form(
+            alias="trackNumbers", description="Порядковый номер трека в альбоме"
+        ),
+        song_artists_ids: str = Form(
+            alias="songArtistsIds", description="Артисты на треке"
+        ),
     ):
-        if not (len(songs) == len(song_names) == len(track_numbers)):
-            raise ValueError("Количество файлов, названий и порядков не совпадают")
+        try:
+            parsed_song_artists_ids = json.loads(song_artists_ids)
+            if not isinstance(parsed_song_artists_ids, list):
+                raise ValueError("songArtistsIds должен быть списком")
+        except json.JSONDecodeError:
+            raise ValueError("Неверный формат JSON для songArtistsIds")
+
+        if not (
+            len(songs)
+            == len(song_names)
+            == len(track_numbers)
+            == len(parsed_song_artists_ids)
+        ):
+            raise ValueError(
+                "Количество файлов, названий, порядков и артистов не совпадают"
+            )
 
         return cls(
             name=name,
@@ -43,5 +58,5 @@ class AlbumCreate(MusicCreate, CoverCreate):
             songs=songs,
             song_names=song_names,
             track_numbers=track_numbers,
-            artists_ids=artists_ids,
+            song_artists_ids=parsed_song_artists_ids,
         )

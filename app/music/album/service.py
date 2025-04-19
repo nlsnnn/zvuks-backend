@@ -1,4 +1,5 @@
-from fastapi import UploadFile
+import asyncio
+from fastapi import HTTPException, UploadFile, status
 
 from app.music.service import MusicService
 from app.music.utils import MusicUtils
@@ -12,6 +13,11 @@ class AlbumService:
     @staticmethod
     async def get_album(id: int):
         album = await AlbumDAO.find_one_or_none_by_id(id)
+        if not album:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Альбом не найден"
+            )
+
         data = AlbumRead(
             id=album.id,
             name=album.name,
@@ -19,14 +25,12 @@ class AlbumService:
             cover_path=album.cover_path,
         )
         return data
-    
 
     @staticmethod
     async def get_all_albums(archive: bool = False):
         albums = await AlbumDAO.find_all(is_archive=archive)
         data = MusicService.get_albums_dto(albums)
         return data
-    
 
     @staticmethod
     async def get_album_songs(album_id: int):
@@ -34,83 +38,98 @@ class AlbumService:
         data = await MusicService.get_songs_dto(songs)
         return data
 
-
     @staticmethod
     async def add_album(album_data: AlbumCreate, user_data: User):
         name = album_data.name
-        directory = MusicUtils.get_directory_name('albums', name, user_data)
+
+        directory = MusicUtils.get_directory_name("albums", name, user_data)
         cover_path = await MusicService.upload_file(
-            album_data.cover, 
-            directory,
-            ['jpg', 'jpeg', 'png']
+            album_data.cover, directory, ["jpg", "jpeg", "png"]
         )
         album = await AlbumService.create_album(
-            name, 
-            cover_path, 
-            album_data.release_date, 
-            user_data.id
+            name, cover_path, album_data.release_date, user_data.id
         )
 
-        artists = await UsersDAO.find_all_by_ids(album_data.artist_ids)
-
         songs = await AlbumService.save_album_songs(
-            album_data.songs, 
-            cover_path, 
-            album.id, 
-            user_data.id, 
-            album_data.song_names, 
+            album_data.songs,
+            cover_path,
+            album.id,
+            user_data.id,
+            album_data.song_names,
             album_data.track_numbers,
+            album_data.song_artists_ids,
             directory,
-            artists
         )
 
         return [album, songs]
 
-
     @staticmethod
     async def create_album(name: str, cover_path: str, date: str, user_id: int):
         album = await AlbumDAO.add(
-            name=name,
-            cover_path=cover_path,
-            release_date=date,
-            user_id=user_id
+            name=name, cover_path=cover_path, release_date=date, user_id=user_id
         )
         return album
-    
 
     @staticmethod
     async def save_album_songs(
-        songs: list[UploadFile], 
-        cover_path: str, 
-        album_id: int, 
+        songs: list[UploadFile],
+        cover_path: str,
+        album_id: int,
         user_id: int,
         song_names: list[str],
         track_numbers: list[int],
+        song_artists_ids: list[int],
         directory: str,
-        artists
     ):
-        songs_added = []
-        
+        author = await UsersDAO.find_one_or_none_by_id(user_id)
+        tasks = []
+
         for i, song in enumerate(songs):
-            song_path = await MusicService.upload_file(
-                song,
-                directory,
-                ['mp3', 'wav']
+            tasks.append(
+                AlbumService.save_album_song(
+                    song,
+                    author,
+                    cover_path,
+                    album_id,
+                    song_names[i],
+                    track_numbers[i],
+                    song_artists_ids[i],
+                    directory,
+                )
             )
 
-            song_orm = await SongDAO.add(
-                name=song_names[i],
-                track_number=track_numbers[i],
-                path=song_path,
-                cover_path=cover_path,
-                album_id=album_id,
-                user_id=user_id,
-                artists=artists,
-            )
+        songs_added = await asyncio.gather(*tasks)
 
-            songs_added.append(song_orm)
-        
         data = await MusicService.get_songs_dto(songs_added)
         return data
-    
 
+    @staticmethod
+    async def save_album_song(
+        song: UploadFile,
+        author: User,
+        cover_path: str,
+        album_id: int,
+        song_name: str,
+        track_number: int,
+        song_artists_ids: list[int],
+        directory: str,
+    ):
+        song_path = await MusicService.upload_file(song, directory, ["mp3", "wav"])
+
+        if len(song_artists_ids) < 1:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="В треке должен быть как минимум 1 артист",
+            )
+        song_artists = await UsersDAO.find_all_by_ids(song_artists_ids)
+
+        song_orm = await SongDAO.add(
+            name=song_name,
+            track_number=track_number,
+            path=song_path,
+            cover_path=cover_path,
+            album_id=album_id,
+            user_id=author.id,
+            artists=song_artists,
+        )
+        return song_orm
