@@ -1,6 +1,6 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Depends
 from app.chat.dao import MessagesDAO
-from app.chat.schemas import MessageCreate
+from app.chat.schemas import MessageCreate, MessageEdit
 from app.users.dao import UsersDAO
 from app.users.dependencies import get_current_user
 from app.users.models import User
@@ -51,6 +51,7 @@ async def send_message(
         content=message.content,
     )
     message_data = {
+        "id": message_orm.id,
         "sender_id": user_data.id,
         "recipient_id": message.recipient_id,
         "content": message.content,
@@ -63,6 +64,33 @@ async def send_message(
     return {
         "recipient_id": message.recipient_id,
         "content": message.content,
-        "status": "ok",
-        "msg": "Message saved!",
+        "msg": "Сообщение сохранено",
     }
+
+
+@router.put("/messages")
+async def edit_message(
+    message_data: MessageEdit,
+    user_data: User = Depends(get_current_user),
+):
+    message = await MessagesDAO.find_one_or_none_by_id(message_data.id)
+    if not message:
+        raise HTTPException(status_code=404, detail="Сообщение не найдено")
+
+    await MessagesDAO.update(
+        filter_by={"id": message_data.id}, content=message_data.content
+    )
+    return {"msg": "Сообщение обновлено"}
+
+
+@router.delete("/messages/{message_id}")
+async def delete_message(
+    message_id: int,
+    user_data: User = Depends(get_current_user),
+):
+    message = await MessagesDAO.find_one_or_none_by_id(message_id)
+    if not message:
+        raise HTTPException(status_code=404, detail="Сообщение не найдено")
+
+    await MessagesDAO.delete(id=message_id)
+    return {"msg": "Сообщение удалено"}

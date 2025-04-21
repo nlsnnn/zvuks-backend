@@ -11,3 +11,8 @@ class MessageRead(BaseModel):
 class MessageCreate(BaseModel):
     recipient_id: int
     content: str
+
+
+class MessageEdit(BaseModel):
+    id: int
+    content: str
