@@ -16,8 +16,8 @@ async def get_all_albums():
 
 
 @router.get("/{album_id}")
-async def get_album(album_id: int):
-    album = await AlbumService.get_album(album_id)
+async def get_album(request: Request, album_id: int):
+    album = await AlbumService.get_album(request, album_id)
     return {"album": album}
 
 

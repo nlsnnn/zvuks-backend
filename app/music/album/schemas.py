@@ -12,6 +12,7 @@ class AlbumRead(BaseModel):
     name: str = Field(serialization_alias="title")
     release_date: str | datetime = Field(serialization_alias="releaseDate")
     cover_path: str = Field(serialization_alias="cover")
+    favorite: bool
     artist: SUserRead
 
 

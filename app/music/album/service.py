@@ -1,31 +1,38 @@
 import asyncio
 from fastapi import HTTPException, Request, UploadFile, status
 
+from app.music.favorite.dao import FavoriteAlbumDAO
 from app.music.service import MusicService
 from app.music.utils import MusicUtils
 from app.music.album import AlbumDAO, AlbumCreate, AlbumRead
 from app.music.song import SongDAO
 from app.users.dao import UsersDAO
-from app.users.dependencies import get_current_user
 from app.users.models import User
 from app.users.schemas import SUserRead
 
 
 class AlbumService:
     @staticmethod
-    async def get_album(id: int):
+    async def get_album(request: Request, id: int):
         album = await AlbumDAO.find_one_or_none_by_id(id)
         if not album:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Альбом не найден"
             )
         author = await UsersDAO.find_one_or_none_by_id(album.user_id)
+        user_id = await MusicUtils.check_auth_token(request)
+        if user_id:
+            favorite = await FavoriteAlbumDAO.find_one_or_none(
+                user_id=user_id, album_id=album.id
+            )
+            is_favorite = True if favorite else False
 
         data = AlbumRead(
             id=album.id,
             name=album.name,
             release_date=album.release_date,
             cover_path=album.cover_path,
+            favorite=False if not user_id else is_favorite,
             artist=SUserRead(
                 id=author.id, username=author.username, avatar=author.avatar_path
             ),
@@ -40,7 +47,7 @@ class AlbumService:
 
     @staticmethod
     async def get_album_songs(request: Request, album_id: int, user_id: int = None):
-        user_id = MusicUtils.check_auth_token(request)
+        user_id = await MusicUtils.check_auth_token(request)
         songs = await SongDAO.find_all(album_id=album_id)
         data = await MusicService.get_songs_dto(songs, user_id)
         return data
