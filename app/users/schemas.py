@@ -14,7 +14,9 @@ class SUserRegister(BaseModel):
 
 
 class SUserAuth(BaseModel):
-    identifier: Union[str, EmailStr] = Field(description="Электронная почта или имя пользователя")
+    identifier: Union[str, EmailStr] = Field(
+        description="Электронная почта или имя пользователя"
+    )
     password: str = Field(
         min_length=5, max_length=50, description="Пароль, от 5 до 50 знаков"
     )
@@ -30,16 +32,16 @@ class SPasswordReset(BaseModel):
 
 
 class SUserUpdate(BaseModel):
+    bio: Optional[str] = Form(default=None)
     avatar: Optional[UploadFile] = Form(default=None)
 
     @classmethod
     async def as_form(
         cls,
-        avatar: Optional[UploadFile]
+        bio: Optional[str] = Form(default=None),
+        avatar: Optional[UploadFile] = Form(default=None),
     ):
-        return cls(
-            avatar=avatar
-        )
+        return cls(bio=bio, avatar=avatar)
 
 
 class SUserRead(BaseModel):
@@ -49,5 +51,5 @@ class SUserRead(BaseModel):
 
 
 class SUserProfile(SUserRead):
-    bio: str | None = Field(default=None)
+    bio: Optional[str] = Field(default=None)
     songs: list

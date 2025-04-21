@@ -38,15 +38,20 @@ class UserService:
             username=user.username,
             avatar=user.avatar_path,
             songs=songs_dto,
+            bio=user.bio,
         )
 
         return data
 
     @staticmethod
     async def update_user(data: SUserUpdate, user: User):
+        updates = {}
         if data.avatar:
-            path = await UserService.save_avatar(data.avatar, user)
-            await UsersDAO.update(filter_by={"id": user.id}, avatar_path=path)
+            updates["avatar_path"] = await UserService.save_avatar(data.avatar, user)
+        if data.bio:
+            updates["bio"] = data.bio
+        if updates:
+            await UsersDAO.update(filter_by={"id": user.id}, **updates)
 
         user_updated = await UsersDAO.find_one_or_none_by_id(user.id)
         user_dto = UserService.get_user_dto(user_updated)
