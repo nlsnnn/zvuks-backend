@@ -8,6 +8,7 @@ class User(Base):
     username: Mapped[str_uniq]
     email: Mapped[str_uniq]
     password: Mapped[str]
+    bio: Mapped[str] = mapped_column(nullable=True)
     avatar_path: Mapped[str] = mapped_column(nullable=True)
 
     is_user: Mapped[bool] = mapped_column(

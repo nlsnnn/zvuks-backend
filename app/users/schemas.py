@@ -35,7 +35,7 @@ class SUserUpdate(BaseModel):
     @classmethod
     async def as_form(
         cls,
-        avatar: Optional[UploadFile] 
+        avatar: Optional[UploadFile]
     ):
         return cls(
             avatar=avatar
@@ -49,4 +49,5 @@ class SUserRead(BaseModel):
 
 
 class SUserProfile(SUserRead):
+    bio: str | None = Field(default=None)
     songs: list
