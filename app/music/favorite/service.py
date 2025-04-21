@@ -1,8 +1,11 @@
 from app.exceptions import AlreadyExistsException
+from app.music.album.schemas import AlbumRead
 from app.music.song import SongDAO
 from app.music.album import AlbumDAO
 from app.music.service import MusicService
 from app.music.favorite.dao import FavoriteAlbumDAO, FavoriteSongDAO
+from app.users.models import User
+from app.users.schemas import SUserRead
 
 
 class FavoriteService:
@@ -15,11 +18,24 @@ class FavoriteService:
         return data
 
     @staticmethod
-    async def get_albums(user_id: int):
-        favorites = await FavoriteAlbumDAO.find_all(user_id=user_id)
+    async def get_albums(user: User):
+        favorites = await FavoriteAlbumDAO.find_all(user_id=user.id)
         favorite_album_ids = [favorite.album_id for favorite in favorites]
         albums = await AlbumDAO.find_all_by_ids(favorite_album_ids)
-        data = MusicService.get_albums_dto(albums)
+        data = [
+            AlbumRead(
+                id=album.id,
+                name=album.name,
+                release_date=album.release_date,
+                cover_path=album.cover_path,
+                favorite=True,
+                artist=SUserRead(
+                    id=user.id, username=user.username, avatar=user.avatar_path
+                ),
+            )
+            for album in albums
+        ]
+
         return data
 
     @staticmethod
@@ -30,26 +46,18 @@ class FavoriteService:
         )
         if song:
             raise AlreadyExistsException
-        
-        await FavoriteSongDAO.add(
-            song_id=song_id,
-            user_id=user_id
-        )
+
+        await FavoriteSongDAO.add(song_id=song_id, user_id=user_id)
 
     @staticmethod
     async def add_album(album_id: int, user_id: int):
         album = await FavoriteAlbumDAO.find_one_or_none(
-            album_id=album_id,
-            user_id=user_id
+            album_id=album_id, user_id=user_id
         )
         if album:
             raise AlreadyExistsException
 
-        await FavoriteAlbumDAO.add(
-            album_id=album_id,
-            user_id=user_id
-        )
-
+        await FavoriteAlbumDAO.add(album_id=album_id, user_id=user_id)
 
     @staticmethod
     async def delete_song(song_id: int, user_id: int):
@@ -57,7 +65,6 @@ class FavoriteService:
             song_id=song_id,
             user_id=user_id,
         )
-
 
     @staticmethod
     async def delete_album(album_id: int, user_id: int):

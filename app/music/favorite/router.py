@@ -22,7 +22,7 @@ async def get_favorite_songs(
 async def get_favorite_albums(
     user_data: Annotated[User, Depends(get_current_user)],
 ):
-    albums = await FavoriteService.get_albums(user_data.id)
+    albums = await FavoriteService.get_albums(user_data)
     return albums
 
 
