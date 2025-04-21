@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 
 from app.music.album import AlbumDAO, AlbumCreate
 from app.music.album.service import AlbumService
@@ -22,8 +22,8 @@ async def get_album(album_id: int):
 
 
 @router.get("/{album_id}/songs")
-async def get_album_songs(album_id: int):
-    songs = await AlbumService.get_album_songs(album_id)
+async def get_album_songs(request: Request, album_id: int):
+    songs = await AlbumService.get_album_songs(request, album_id)
     return {"songs": songs}
 
 

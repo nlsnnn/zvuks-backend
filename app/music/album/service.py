@@ -1,11 +1,12 @@
 import asyncio
-from fastapi import HTTPException, UploadFile, status
+from fastapi import HTTPException, Request, UploadFile, status
 
 from app.music.service import MusicService
 from app.music.utils import MusicUtils
 from app.music.album import AlbumDAO, AlbumCreate, AlbumRead
 from app.music.song import SongDAO
 from app.users.dao import UsersDAO
+from app.users.dependencies import get_current_user
 from app.users.models import User
 from app.users.schemas import SUserRead
 
@@ -26,10 +27,8 @@ class AlbumService:
             release_date=album.release_date,
             cover_path=album.cover_path,
             artist=SUserRead(
-                id=author.id,
-                username=author.username,
-                avatar=author.avatar_path
-            )
+                id=author.id, username=author.username, avatar=author.avatar_path
+            ),
         )
         return data
 
@@ -40,9 +39,10 @@ class AlbumService:
         return data
 
     @staticmethod
-    async def get_album_songs(album_id: int):
+    async def get_album_songs(request: Request, album_id: int, user_id: int = None):
+        user_id = MusicUtils.check_auth_token(request)
         songs = await SongDAO.find_all(album_id=album_id)
-        data = await MusicService.get_songs_dto(songs)
+        data = await MusicService.get_songs_dto(songs, user_id)
         return data
 
     @staticmethod

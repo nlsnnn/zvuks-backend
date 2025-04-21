@@ -1,7 +1,8 @@
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 from datetime import datetime
 from dateutil import parser
 
+from app.users.dependencies import get_current_user
 from app.users.models import User
 
 
@@ -29,3 +30,13 @@ class MusicUtils:
     def validate_song_format(song: str):
         if song.split(".")[-1] != "mp3":
             raise HTTPException(status_code=400, detail="Формат должен быть MP3")
+
+    @staticmethod
+    async def check_auth_token(request: Request):
+        token = request.cookies.get("users_access_token")
+        if token:
+            user = await get_current_user(request)
+            user_id = user.id
+            return user_id
+
+        return None
