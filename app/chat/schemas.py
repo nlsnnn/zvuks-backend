@@ -1,15 +1,19 @@
+from typing import Optional
 from pydantic import BaseModel, Field
 
 
 class MessageRead(BaseModel):
     id: int
-    sender_id: int
-    recipient_id: int
+    sender: int
+    recipient: int
     content: str
+    created: str
+    updated: bool
+    type: Optional[str] = Field(default=None)
 
 
 class MessageCreate(BaseModel):
-    recipient_id: int
+    recipient: int
     content: str
 
 

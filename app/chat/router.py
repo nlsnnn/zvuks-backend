@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Depends
 from app.chat.dao import MessagesDAO
-from app.chat.schemas import MessageCreate, MessageEdit
+from app.chat.schemas import MessageCreate, MessageEdit, MessageRead
 from app.users.dao import UsersDAO
 from app.users.dependencies import get_current_user
 from app.users.models import User
@@ -33,10 +33,21 @@ async def get_messages(user_id: int, user_data: User = Depends(get_current_user)
     messages = await MessagesDAO.get_messages_between_users(
         f_user_id=user_id, s_user_id=user_data.id
     )
+    messages_dto = [
+        MessageRead(
+            id=msg.id,
+            sender=msg.sender_id,
+            recipient=msg.recipient_id,
+            content=msg.content,
+            created=str(msg.created_at),
+            updated=msg.created_at < msg.updated_at,
+        )
+        for msg in messages
+    ]
 
     user = await UsersDAO.find_one_or_none(**{"id": user_id})
     user_dto = UserService.get_user_dto(user)
-    return {"user": user_dto, "messages": messages}
+    return {"user": user_dto, "messages": messages_dto}
 
 
 @router.post("/messages", response_model=MessageCreate)
@@ -47,24 +58,24 @@ async def send_message(
 ):
     message_orm = await MessagesDAO.add(
         sender_id=user_data.id,
-        recipient_id=message.recipient_id,
+        recipient_id=message.recipient,
         content=message.content,
     )
-    message_data = {
-        "id": message_orm.id,
-        "sender_id": user_data.id,
-        "recipient_id": message.recipient_id,
-        "content": message.content,
-        "created_at": str(message_orm.created_at),
-        "updated": message_orm.created_at < message_orm.updated_at,
-        "type": "message",
-    }
+    message_data = MessageRead(
+        id=message_orm.id,
+        sender=user_data.id,
+        recipient=message.recipient,
+        content=message.content,
+        created=str(message_orm.created_at),
+        updated=message_orm.created_at < message_orm.updated_at,
+        type="message",
+    )
 
-    await manager.notify_user(user_data.id, message_data)
-    await manager.notify_user(message.recipient_id, message_data)
+    await manager.notify_user(user_data.id, message_data.model_dump())
+    await manager.notify_user(message.recipient, message_data.model_dump())
 
     return {
-        "recipient_id": message.recipient_id,
+        "recipient": message.recipient,
         "content": message.content,
         "msg": "Сообщение сохранено",
     }
