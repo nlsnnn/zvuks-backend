@@ -56,6 +56,8 @@ async def send_message(
         "recipient_id": message.recipient_id,
         "content": message.content,
         "created_at": str(message_orm.created_at),
+        "updated": message_orm.created_at < message_orm.updated_at,
+        "type": "message",
     }
 
     await manager.notify_user(user_data.id, message_data)
@@ -72,6 +74,7 @@ async def send_message(
 async def edit_message(
     message_data: MessageEdit,
     user_data: User = Depends(get_current_user),
+    manager: WebSocketManager = Depends(get_websocket_manager),
 ):
     message = await MessagesDAO.find_one_or_none_by_id(message_data.id)
     if not message:
@@ -80,6 +83,16 @@ async def edit_message(
     await MessagesDAO.update(
         filter_by={"id": message_data.id}, content=message_data.content
     )
+
+    data = {
+        "id": message.id,
+        "content": message_data.content,
+        "type": "update",
+    }
+
+    await manager.notify_user(message.sender_id, data)
+    await manager.notify_user(message.recipient_id, data)
+
     return {"msg": "Сообщение обновлено"}
 
 
@@ -87,10 +100,20 @@ async def edit_message(
 async def delete_message(
     message_id: int,
     user_data: User = Depends(get_current_user),
+    manager: WebSocketManager = Depends(get_websocket_manager),
 ):
     message = await MessagesDAO.find_one_or_none_by_id(message_id)
     if not message:
         raise HTTPException(status_code=404, detail="Сообщение не найдено")
 
     await MessagesDAO.delete(id=message_id)
+
+    data = {
+        "id": message_id,
+        "type": "delete",
+    }
+
+    await manager.notify_user(message.sender_id, data)
+    await manager.notify_user(message.recipient_id, data)
+
     return {"msg": "Сообщение удалено"}
