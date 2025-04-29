@@ -11,7 +11,14 @@ from alembic import context
 
 from app.database import DATABASE_URL, Base
 from app.users.models import User
-from app.music.models import Album, Song, FavoriteSong, FavoriteAlbum
+from app.music.models import (
+    Album,
+    Song,
+    FavoriteSong,
+    FavoriteAlbum,
+    Playlist,
+    PlaylistSong,
+)
 from app.friends.models import Friend
 from app.chat.models import Message
 
