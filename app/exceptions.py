@@ -37,3 +37,6 @@ AlreadyExistsException = HTTPException(status_code=status.HTTP_409_CONFLICT,
 
 NoUserException = HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail="Пользователь не найден")
+
+NotFoundException = HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                  detail="Не найдено")
