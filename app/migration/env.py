@@ -19,6 +19,7 @@ from app.music.models import (
     Playlist,
     PlaylistSong,
 )
+from app.music.recommendations.models import ListenEvent
 from app.friends.models import Friend
 from app.chat.models import Message
 
