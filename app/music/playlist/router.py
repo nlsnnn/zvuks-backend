@@ -66,7 +66,7 @@ async def add_playlist_song(
     return {"message": "Песня добавлена в плейлист"}
 
 
-@router.delete("/song/{song_id}")
+@router.delete("/song/")
 async def delete_playlist_song(
     data: PlaylistSongAdd, user_data: Annotated[User, Depends(get_current_user)]
 ):
