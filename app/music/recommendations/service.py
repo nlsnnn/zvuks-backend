@@ -17,3 +17,8 @@ class RecommendationsService:
         if not song:
             raise NotFoundException
         await RecommendationsDAO.add_listen(song_id=song_id, user_id=user_id)
+
+    @staticmethod
+    async def get_new_songs(user_id: int | None = None, limit: int = 10):
+        songs = await SongDAO.get_latest(limit)
+        return await MusicService.get_songs_dto(songs, user_id)

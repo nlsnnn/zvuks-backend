@@ -33,3 +33,15 @@ class SongDAO(BaseDAO):
             id_to_song = {song.id: song for song in songs}
             sorted_songs = [id_to_song[id_] for id_ in ids if id_ in id_to_song]
             return sorted_songs
+
+    @classmethod
+    async def get_latest(cls, limit: int = 10):
+        async with async_session_maker() as session:
+            query = (
+                select(cls.model)
+                .order_by(cls.model.created_at.desc())
+                .limit(limit)
+                .options(selectinload(cls.model.artists))
+            )
+            result = await session.execute(query)
+            return result.scalars().all()
