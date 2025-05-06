@@ -63,8 +63,10 @@ settings = Settings()
 
 
 def get_db_url():
-    url = (f"postgresql+asyncpg://{settings.db.user}:{settings.db.password}@"
-            f"{settings.db.host}:{settings.db.port}/{settings.db.name}")
+    url = (
+        f"postgresql+asyncpg://{settings.db.user}:{settings.db.password}@"
+        f"{settings.db.host}:{settings.db.port}/{settings.db.name}"
+    )
     return url
 
 
@@ -86,12 +88,17 @@ def get_redis_client():
         host=settings.redis.host,
         port=settings.redis.port,
         username=settings.redis.username,
-        password=settings.redis.password
+        password=settings.redis.password,
     )
+
+
+def get_redis_url():
+    return f"redis://{settings.redis.username}:{settings.redis.password}@{settings.redis.host}:6379/0"
 
 
 def get_song_path():
     pass
+
 
 def get_s3_base_url():
     return f"{settings.s3.endpoint}/{settings.s3.bucket_name}"
