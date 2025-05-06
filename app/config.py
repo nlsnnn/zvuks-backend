@@ -37,6 +37,11 @@ class RedisConfig(BaseModel):
     password: str
 
 
+class NatsConfig(BaseModel):
+    host: str
+    port: int
+
+
 class SMTPConfig(BaseModel):
     host: str
     port: int
@@ -56,6 +61,7 @@ class Settings(BaseSettings):
     jwt: JWTConfig
     s3: S3Config
     redis: RedisConfig
+    nats: NatsConfig
     smtp: SMTPConfig
 
 
@@ -94,6 +100,10 @@ def get_redis_client():
 
 def get_redis_url():
     return f"redis://{settings.redis.username}:{settings.redis.password}@{settings.redis.host}:6379/0"
+
+
+def get_nats_url():
+    return f"nats://{settings.nats.host}:{settings.nats.port}"
 
 
 def get_song_path():
