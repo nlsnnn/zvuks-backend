@@ -1,4 +1,3 @@
-from datetime import datetime, timedelta
 from fastapi import Request
 from app.music.song import SongDAO, SongCreate
 from app.music.service import MusicService
@@ -19,8 +18,6 @@ class SongService:
         songs = await SongDAO.find_all(**{"is_archive": archive})
 
         data = await MusicService.get_songs_dto(songs, user_id)
-        from app.tasks.music import publish_song
-        await publish_song.kiq(song_id=1, schedule_time=datetime.now() + timedelta(seconds=10))
         return data
 
     @staticmethod
@@ -45,7 +42,5 @@ class SongService:
             user_id=user_data.id,
             artists=artists,
         )
-
-        # await publish_song.kiq(song_id=song_orm.id, schedule_time=song_orm.release_date)
 
         return song_orm
