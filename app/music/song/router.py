@@ -1,18 +1,20 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 
 from app.music.song.service import SongService
-from app.users.dependencies import get_current_user
+from app.users.dependencies import (
+    OptionalUserDep,
+    CurrentUserDep,
+)
 from app.music.song import SongCreate, SongUpdate, SongDAO
-from app.users.models import User
 
 
 router = APIRouter(prefix="/song", tags=["Song"])
 
 
 @router.get("/")
-async def get_all_songs(request: Request, archive: Optional[bool] = False):
-    data = await SongService.get_songs(request, archive)
+async def get_all_songs(user: OptionalUserDep, archive: Optional[bool] = False):
+    data = await SongService.get_songs(archive, user_id=user.id if user else None)
     return {"songs": data}
 
 
@@ -27,8 +29,8 @@ async def get_song(song_id: int):
 
 @router.post("/")
 async def add_song(
+    user_data: CurrentUserDep,
     song_data: SongCreate = Depends(SongCreate.as_form),
-    user_data: User = Depends(get_current_user),
 ) -> dict:
     data = await SongService.add_song(song_data, user_data)
 

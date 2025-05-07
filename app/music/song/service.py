@@ -1,22 +1,14 @@
-from fastapi import Request
 from app.music.song import SongDAO, SongCreate
 from app.music.service import MusicService
 from app.music.utils import MusicUtils
 from app.users.dao import UsersDAO
-from app.users.dependencies import get_current_user
 from app.users.models import User
 
 
 class SongService:
     @staticmethod
-    async def get_songs(request: Request, archive: bool = False, user_id: int = None):
-        token = request.cookies.get("users_access_token")
-        if token:
-            user = await get_current_user(request)
-            user_id = user.id
-
+    async def get_songs(archive: bool = False, user_id: int = None):
         songs = await SongDAO.find_all(**{"is_archive": archive})
-
         data = await MusicService.get_songs_dto(songs, user_id)
         return data
 

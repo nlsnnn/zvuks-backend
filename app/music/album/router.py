@@ -1,9 +1,8 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends
 
 from app.music.album import AlbumDAO, AlbumCreate
 from app.music.album.service import AlbumService
-from app.users.dependencies import get_current_user
-from app.users.models import User
+from app.users.dependencies import CurrentUserDep, OptionalUserDep
 
 
 router = APIRouter(prefix="/album", tags=["Album"])
@@ -16,21 +15,21 @@ async def get_all_albums():
 
 
 @router.get("/{album_id}")
-async def get_album(request: Request, album_id: int):
-    album = await AlbumService.get_album(request, album_id)
+async def get_album(album_id: int, user: OptionalUserDep):
+    album = await AlbumService.get_album(album_id, user.id if user else None)
     return {"album": album}
 
 
 @router.get("/{album_id}/songs")
-async def get_album_songs(request: Request, album_id: int):
-    songs = await AlbumService.get_album_songs(request, album_id)
+async def get_album_songs(album_id: int, user: OptionalUserDep):
+    songs = await AlbumService.get_album_songs(album_id, user.id if user else None)
     return {"songs": songs}
 
 
 @router.post("/")
 async def add_album(
+    user_data: CurrentUserDep,
     album_data: AlbumCreate = Depends(AlbumCreate.as_form),
-    user_data: User = Depends(get_current_user),
 ) -> dict:
     album, songs = await AlbumService.add_album(album_data, user_data)
 
