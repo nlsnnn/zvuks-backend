@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
-from fastapi import Request
+from typing import Annotated, Optional
+from fastapi import Depends, HTTPException, Request
 from jose import jwt, JWTError
 
 from app.config import get_auth_data
@@ -52,7 +53,7 @@ def check_time(payload: dict):
         raise TokenExpiredException
 
 
-async def get_current_user(request: Request) -> User | None:
+async def get_current_user(request: Request) -> Optional[User]:
     """
     Зависимость (получение пользователя)
     """
@@ -71,8 +72,25 @@ async def get_current_user(request: Request) -> User | None:
     return user
 
 
+async def get_optional_user(request: Request) -> Optional[User]:
+    """
+    Зависимость (опциональное получения пользователя)
+    """
+    try:
+        return await get_current_user(request)
+    except HTTPException as e:
+        if e.status_code in (401, 403):
+            return None
+        raise
+
+
 async def get_current_admin_user(request: Request):
     current_user = await get_current_user(request)
     if current_user.is_admin:
         return current_user
     raise ForbiddenException
+
+
+CurrentUserDep = Annotated[User, Depends(get_current_user)]
+OptionalUserDep = Annotated[Optional[User], Depends(get_optional_user)]
+CurrentAdminDep = Annotated[User, Depends(get_current_admin_user)]
