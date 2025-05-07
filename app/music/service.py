@@ -6,7 +6,6 @@ from app.music.favorite.dao import FavoriteSongDAO
 from app.music.models import Song, Album
 from app.music.song import SongRead
 from app.services.utils import Utils
-from app.users.dao import UsersDAO
 from app.users.schemas import SUserRead
 
 
@@ -21,14 +20,11 @@ class MusicService:
             favorite_song_ids = [fav.song_id for fav in favorites]
 
         for song in songs:
-            artists = await UsersDAO.find_all_by_ids(
-                [artist.id for artist in song.artists]
-            )
             artists_dto = [
                 SUserRead(
                     id=artist.id, username=artist.username, avatar=artist.avatar_path
                 )
-                for artist in artists
+                for artist in song.artists
             ]
 
             data.append(
