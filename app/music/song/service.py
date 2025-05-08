@@ -1,5 +1,6 @@
 from app.music.song import SongDAO, SongCreate
 from app.music.service import MusicService
+from app.music.song.schemas import SongUpdate
 from app.music.utils import MusicUtils
 from app.users.dao import UsersDAO
 from app.users.models import User
@@ -36,3 +37,14 @@ class SongService:
         )
 
         return song_orm
+
+    @staticmethod
+    async def update_song(song_id: int, song_data: SongUpdate, user: User):
+        song = await SongDAO.find_one_or_none_by_id(song_id)
+        if not song:
+            raise ValueError("Песня не найдена")
+        if song.user_id != user.id:
+            raise ValueError("Нет прав на редактирование этой песни")
+        await SongDAO.update(
+            filter_by={"id": song_id}, **song_data.model_dump(exclude_none=True)
+        )

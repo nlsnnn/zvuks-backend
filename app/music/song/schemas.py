@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 from fastapi import File, Form, UploadFile
 from pydantic import BaseModel, Field, field_validator
 
@@ -7,10 +8,14 @@ from app.users.schemas import SUserRead
 
 
 class SongUpdate(BaseModel):
-    name: str = Field(description="Название песни")
+    name: Optional[str] = Field(description="Название песни", default=None)
     release_date: datetime = Field(
-        description="Дата релиза песни", serialization_alias="releaseDate"
+        description="Дата релиза песни", alias="releaseDate", default=None
     )
+    album_id: Optional[int] = Field(alias="albumId", default=None)
+    track_number: Optional[int] = Field(alias="trackNumber", default=None)
+    is_archive: Optional[int] = Field(alias="archive", default=None)
+    cover_path: Optional[str] = Field(alias="cover", default=None)
 
 
 class SongRead(BaseModel):

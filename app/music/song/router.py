@@ -42,10 +42,13 @@ async def add_song(
     }
 
 
-@router.put("/{song_id}/")
-async def update_song(song_id: int, data: SongUpdate):
-    song = await SongDAO.find_one_or_none_by_id(song_id)
-    return {"ok": "ok"}
+@router.patch("/{song_id}/")
+async def update_song(song_id: int, data: SongUpdate, user: CurrentUserDep):
+    try:
+        await SongService.update_song(song_id, data, user)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {"message": "Песня обновлена"}
 
 
 @router.delete("/{song_id}/")
