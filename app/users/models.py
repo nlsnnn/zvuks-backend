@@ -24,6 +24,9 @@ class User(Base):
     playlists: Mapped[list["Playlist"]] = relationship(
         back_populates="user"
     )
+    albums: Mapped[list["Album"]] = relationship(
+        back_populates="user"
+    )
     extend_existing = True
 
     def __repr__(self):

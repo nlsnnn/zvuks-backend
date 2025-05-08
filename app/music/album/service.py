@@ -40,9 +40,11 @@ class AlbumService:
         return data
 
     @staticmethod
-    async def get_all_albums(archive: bool = False):
+    async def get_all_albums(user_id: Optional[int], archive: bool = False):
         albums = await AlbumDAO.find_all(is_archive=archive)
-        data = MusicService.get_albums_dto(albums)
+        favorites = await FavoriteAlbumDAO.find_all(user_id=user_id)
+        favorite_ids = [f.album_id for f in favorites]
+        data = MusicService.get_albums_dto(albums, favorite_ids)
         return data
 
     @staticmethod

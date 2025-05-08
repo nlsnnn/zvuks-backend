@@ -15,7 +15,9 @@ async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
 
 int_pk = Annotated[int, mapped_column(primary_key=True, autoincrement=True)]
 created_at = Annotated[datetime, mapped_column(server_default=func.now())]
-updated_at = Annotated[datetime, mapped_column(server_default=func.now(), onupdate=datetime.now)]
+updated_at = Annotated[
+    datetime, mapped_column(server_default=func.now(), onupdate=datetime.now)
+]
 str_uniq = Annotated[str, mapped_column(unique=True, nullable=False)]
 str_null_true = Annotated[str, mapped_column(nullable=True)]
 
@@ -29,7 +31,6 @@ class Base(AsyncAttrs, DeclarativeBase):
     @declared_attr.directive
     def __tablename__(cls) -> str:
         return f"{cls.__name__.lower()}s"
-    
 
     def __repr__(self):
         return f"{self.__class__.__name__}(id={self.id})"

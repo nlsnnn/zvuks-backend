@@ -9,8 +9,8 @@ router = APIRouter(prefix="/album", tags=["Album"])
 
 
 @router.get("/")
-async def get_all_albums():
-    albums = await AlbumService.get_all_albums()
+async def get_all_albums(user: OptionalUserDep):
+    albums = await AlbumService.get_all_albums(user_id=user.id if user else None)
     return {"albums": albums}
 
 

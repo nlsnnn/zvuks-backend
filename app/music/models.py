@@ -13,8 +13,9 @@ class Album(Base):
     is_archive: Mapped[bool] = mapped_column(
         default=False, server_default=text("false")
     )
-
     user_id: Mapped[User] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+
+    user: Mapped[User] = relationship(back_populates="albums", lazy="joined")
 
 
 class Song(Base):
@@ -66,6 +67,11 @@ class FavoriteSong(Base):
 
     __mapper_args__ = {"exclude_properties": {"updated_at"}}
 
+    def __repr__(self):
+        return (
+            f"{self.__class__.__name__}(user_id={self.user_id}, song_id={self.song_id})"
+        )
+
 
 class FavoriteAlbum(Base):
     __tablename__ = "favorite_albums"
@@ -78,6 +84,9 @@ class FavoriteAlbum(Base):
     )
 
     __mapper_args__ = {"exclude_properties": {"updated_at"}}
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(user_id={self.user_id}, album_id={self.album_id})"
 
 
 class Playlist(Base):

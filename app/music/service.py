@@ -42,16 +42,25 @@ class MusicService:
         return data
 
     @staticmethod
-    def get_albums_dto(albums: list[Album]):
-        data = [
-            AlbumRead(
-                id=album.id,
-                name=album.name,
-                release_date=album.release_date,
-                cover_path=album.cover_path,
+    def get_albums_dto(albums: list[Album], favorite_ids: list[int]):
+        data = []
+        for album in albums:
+            is_favorite = album.id in favorite_ids
+            user = SUserRead(
+                id=album.user.id,
+                username=album.user.username,
+                avatar=album.user.avatar_path,
             )
-            for album in albums
-        ]
+            data.append(
+                AlbumRead(
+                    id=album.id,
+                    name=album.name,
+                    release_date=album.release_date,
+                    cover_path=album.cover_path,
+                    favorite=is_favorite,
+                    artist=user,
+                )
+            )
         return data
 
     @staticmethod
