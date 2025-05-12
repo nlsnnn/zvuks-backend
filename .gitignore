@@ -189,3 +189,5 @@ dist-ssr
 zvuks_db.drawio
 redisdata
 nats/data
+.env.development
+.env.production

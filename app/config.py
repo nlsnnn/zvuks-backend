@@ -8,6 +8,7 @@ from app.services.s3 import S3Client
 
 
 BASE_DIR = Path(__file__).parent
+ENV = os.getenv("FASTAPI_ENV", "development")
 
 
 class DatabaseConfig(BaseModel):
@@ -51,7 +52,7 @@ class SMTPConfig(BaseModel):
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=os.path.join(BASE_DIR, ".env"),
+        env_file=BASE_DIR / f".env.{ENV}",
         case_sensitive=False,
         env_nested_delimiter="__",
         env_prefix="APPLICATION__",
