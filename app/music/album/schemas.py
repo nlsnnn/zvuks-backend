@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from typing import Optional
 from fastapi import File, Form, UploadFile
 from pydantic import BaseModel, Field
 
@@ -16,11 +17,17 @@ class AlbumRead(BaseModel):
     artist: SUserRead
 
 
-class AlbumCreate(MusicCreate, CoverCreate): # TODO: refactor
+class ExistingSong(BaseModel):
+    song_id: int = Field(alias="songId")
+    track_number: int = Field(alias="trackNumber")
+
+
+class AlbumCreate(MusicCreate, CoverCreate):  # TODO: refactor
     songs: list[UploadFile]
     song_names: list[str]
     track_numbers: list[int]
     song_artists_ids: list[list[int]]
+    existing_songs: Optional[list[ExistingSong]]
 
     @classmethod
     async def as_form(
@@ -35,6 +42,9 @@ class AlbumCreate(MusicCreate, CoverCreate): # TODO: refactor
         ),
         song_artists_ids: str = Form(
             alias="songArtistsIds", description="Артисты на треке"
+        ),
+        existing_songs: Optional[list[ExistingSong]] = Form(
+            alias="existingSongs", description="Существующие песни"
         ),
     ):
         try:
@@ -62,4 +72,5 @@ class AlbumCreate(MusicCreate, CoverCreate): # TODO: refactor
             song_names=song_names,
             track_numbers=track_numbers,
             song_artists_ids=parsed_song_artists_ids,
+            existing_songs=existing_songs,
         )

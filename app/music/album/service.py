@@ -2,6 +2,7 @@ import asyncio
 from typing import Optional
 from fastapi import HTTPException, UploadFile, status
 
+from app.music.album.schemas import ExistingSong
 from app.music.favorite.dao import FavoriteAlbumDAO
 from app.music.service import MusicService
 from app.music.utils import MusicUtils
@@ -53,8 +54,8 @@ class AlbumService:
         data = await MusicService.get_songs_dto(songs, user_id)
         return data
 
-    @staticmethod
-    async def add_album(album_data: AlbumCreate, user_data: User):
+    @classmethod
+    async def add_album(cls, album_data: AlbumCreate, user_data: User):
         name = album_data.name
 
         directory = MusicUtils.get_directory_name("albums", name, user_data)
@@ -65,6 +66,9 @@ class AlbumService:
             name, cover_path, album_data.release_date, user_data.id
         )
 
+        if existing_songs := album_data.existing_songs:
+            await cls._check_existing_songs(existing_songs, album_data.track_numbers)
+
         songs = await AlbumService.save_album_songs(
             album_data.songs,
             cover_path,
@@ -73,6 +77,7 @@ class AlbumService:
             album_data.song_names,
             album_data.track_numbers,
             album_data.song_artists_ids,
+            album_data.existing_songs,
             directory,
         )
 
@@ -94,6 +99,7 @@ class AlbumService:
         song_names: list[str],
         track_numbers: list[int],
         song_artists_ids: list[int],
+        existing_songs: Optional[list[ExistingSong]],
         directory: str,
     ):
         author = await UsersDAO.find_one_or_none_by_id(user_id)
@@ -113,10 +119,19 @@ class AlbumService:
                 )
             )
 
-        songs_added = await asyncio.gather(*tasks)
+        if existing_songs:
+            for s in existing_songs:
+                tasks.append(
+                    SongDAO.update(
+                        filter_by={
+                            "id": s.song_id,
+                        },
+                        album_id=album_id,
+                        track_number=s.track_number,
+                    )
+                )
 
-        data = await MusicService.get_songs_dto(songs_added)
-        return data
+        return await asyncio.gather(*tasks)
 
     @staticmethod
     async def save_album_song(
@@ -148,3 +163,18 @@ class AlbumService:
             artists=song_artists,
         )
         return song_orm
+
+    @staticmethod
+    async def _check_existing_songs(
+        existing_songs: list[ExistingSong], track_numbers: list[int]
+    ):
+        for s in existing_songs:
+            if s.track_number not in track_numbers:
+                track_numbers.append(s.track_number)
+            else:
+                raise ValueError(
+                    "Порядковые номера существующих песен должны быть разными"
+                )
+            song = await SongDAO.find_one_or_none_by_id(s.song_id)
+            if song.album_id or song.track_number:
+                raise ValueError("Песня уже добавлена в другой альбом")
