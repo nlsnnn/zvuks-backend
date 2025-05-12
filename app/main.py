@@ -21,11 +21,6 @@ app.add_middleware(
 )
 
 
-@app.get("/")
-async def home_page():
-    return {"message": "Hello"}
-
-
 @app.get("/ping")
 async def ping():
     return {"message": "OK"}

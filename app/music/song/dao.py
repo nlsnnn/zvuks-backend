@@ -4,6 +4,7 @@ from sqlalchemy.orm import selectinload
 from app.dao.base import BaseDAO
 from app.music.models import Song
 from app.database import async_session_maker
+from app.music.recommendations.models import ListenEvent
 
 
 class SongDAO(BaseDAO):
@@ -50,10 +51,17 @@ class SongDAO(BaseDAO):
     @classmethod
     async def get_to_publish(cls):
         async with async_session_maker() as session:
-            now = datetime.now() #tz =timezone.utc
+            now = datetime.now()  # tz =timezone.utc
             query = select(cls.model).filter(
                 cls.model.is_archive == True,  # noqa: E712
-                cls.model.release_date <= now
+                cls.model.release_date <= now,
             )
             result = await session.execute(query)
             return result.scalars().all()
+
+    @classmethod
+    async def get_listens_count(cls, song_id: int) -> int:
+        async with async_session_maker() as session:
+            query = select(ListenEvent).filter(ListenEvent.song_id == song_id)
+            result = await session.execute(query)
+            return len(result.scalars().all())
