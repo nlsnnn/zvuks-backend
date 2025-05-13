@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException
+from loguru import logger
 
+from app.music.artist.exceptions import StatsException
 from app.music.artist.schemas import DashboardRead
 from app.users.dependencies import CurrentUserDep
 from app.music.artist.service import ArtistService
@@ -17,8 +19,11 @@ async def get_my_songs(user: CurrentUserDep):
 async def get_song_info(song_id: int, user: CurrentUserDep):
     try:
         return await ArtistService.get_song_stats(song_id, user)
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    except StatsException as e:
+        raise HTTPException(status_code=e.status_code, detail=str(e))
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=500)
 
 
 @router.get("/albums")
@@ -30,8 +35,11 @@ async def get_my_albums(user: CurrentUserDep):
 async def get_album_info(album_id: int, user: CurrentUserDep):
     try:
         return await ArtistService.get_album_stats(album_id, user)
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    except StatsException as e:
+        raise HTTPException(status_code=e.status_code, detail=str(e))
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=500)
 
 
 @router.get("/")

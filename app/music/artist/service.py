@@ -1,4 +1,5 @@
 from app.music.album.dao import AlbumDAO
+from app.music.artist.exceptions import StatsException
 from app.music.artist.schemas import AlbumStatsRead, DashboardRead, SongStatsRead
 from app.music.favorite.dao import FavoriteAlbumDAO, FavoriteSongDAO
 from app.music.service import MusicService
@@ -22,16 +23,16 @@ class ArtistService:
     async def get_song_stats(song_id: int, user: User):
         song = await SongDAO.find_one_or_none_by_id(song_id)
         if not song:
-            raise ValueError("Песня не найдена")
+            raise StatsException("Песня не найдена", 404)
         if song.user_id != user.id:
-            raise ValueError("Недостаточно прав")
+            raise StatsException("Недостаточно прав")
         artists = [
             SUserRead(id=artist.id, username=artist.username, avatar=artist.avatar_path)
             for artist in song.artists
         ]
 
         listens = await SongDAO.get_listens_count(song_id)
-        favorites = len(await FavoriteSongDAO.find_all(song_id=song_id))
+        favorites = await FavoriteSongDAO.find_all(song_id=song_id)
         return SongStatsRead(
             id=song.id,
             name=song.name,
@@ -41,7 +42,7 @@ class ArtistService:
             is_archive=song.is_archive,
             is_favorite=True,
             artists=artists,
-            favortes=favorites,
+            favortes=len(favorites),
             listens=listens,
         )
 
@@ -49,9 +50,9 @@ class ArtistService:
     async def get_album_stats(album_id: int, user: User):
         album = await AlbumDAO.find_one_or_none_by_id(album_id)
         if not album:
-            raise ValueError("Альбом не найден")
+            raise StatsException("Альбом не найден", 404)
         if album.user_id != user.id:
-            raise ValueError("Недостаточно прав")
+            raise StatsException("Недостаточно прав")
 
         artist = SUserRead(
             id=album.user.id,
