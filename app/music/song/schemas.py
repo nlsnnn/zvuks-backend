@@ -44,6 +44,7 @@ class SongCreate(MusicCreate, CoverCreate):
         cls,
         name: str = Form(...),
         release_date: str = Form(alias="releaseDate"),
+        notify_subscribers: bool = Form(default=False),
         song: UploadFile = File(...),
         cover: UploadFile = File(...),
         artist_ids: str = Form(alias="artistIds"),
@@ -51,6 +52,7 @@ class SongCreate(MusicCreate, CoverCreate):
         return cls(
             name=name,
             release_date=release_date,
+            notify_subscribers=notify_subscribers,
             song=song,
             cover=cover,
             artist_ids=artist_ids,

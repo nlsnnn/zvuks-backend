@@ -2,6 +2,7 @@ from app.music.song import SongDAO, SongCreate
 from app.music.service import MusicService
 from app.music.song.schemas import SongUpdate
 from app.music.utils import MusicUtils
+from app.tasks.notify import notify_release
 from app.users.dao import UsersDAO
 from app.users.models import User
 
@@ -35,6 +36,9 @@ class SongService:
             user_id=user_data.id,
             artists=artists,
         )
+
+        if song_data.notify_subscribers:
+            await notify_release
 
         return song_orm
 

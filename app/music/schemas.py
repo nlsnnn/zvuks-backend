@@ -7,6 +7,7 @@ from app.music.utils import MusicUtils
 class MusicCreate(BaseModel):
     name: str = Form(...)
     release_date: str = Form(alias="releaseDate")
+    notify_subscribers: bool = Form(default=False)
 
     @field_validator("release_date")
     def validate_date(cls, v):
