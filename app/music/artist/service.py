@@ -1,5 +1,5 @@
 from app.music.album.dao import AlbumDAO
-from app.music.artist.schemas import AlbumStatsRead, SongStatsRead
+from app.music.artist.schemas import AlbumStatsRead, DashboardRead, SongStatsRead
 from app.music.favorite.dao import FavoriteAlbumDAO, FavoriteSongDAO
 from app.music.service import MusicService
 from app.music.song.dao import SongDAO
@@ -70,6 +70,25 @@ class ArtistService:
             artist=artist,
             favorites=favorites,
             listens=listens,
+        )
+
+    @staticmethod
+    async def get_dashboard(user: User):
+        songs = await SongDAO.find_all(user_id=user.id)
+        albums = await AlbumDAO.find_all(user_id=user.id)
+        song_ids = [s.id for s in songs]
+        album_ids = [a.id for a in albums]
+        listens = await SongDAO.get_listens_count_for_songs(song_ids)
+        favorite_songs = await FavoriteSongDAO.get_all_by_song_ids(song_ids)
+        favorite_albums = await FavoriteAlbumDAO.get_all_by_album_ids(album_ids)
+
+        return DashboardRead(
+            listens=listens,
+            subscribers=len(user.subscribers),
+            songs=len(songs),
+            albums=len(albums),
+            favorite_songs=len(favorite_songs),
+            favorite_albums=len(favorite_albums),
         )
 
     @staticmethod

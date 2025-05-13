@@ -1,4 +1,5 @@
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from app.dao.base import BaseDAO
 from app.friends.dao import FriendsDAO
 from app.users.models import User, ArtistSubscriber
@@ -7,6 +8,21 @@ from app.database import async_session_maker
 
 class UsersDAO(BaseDAO):
     model = User
+
+    @classmethod
+    async def find_one_or_none_by_id(cls, data_id: int):
+        async with async_session_maker() as session:
+            query = (
+                select(cls.model)
+                .filter_by(id=data_id)
+                .options(
+                    selectinload(cls.model.subscribers),
+                    selectinload(cls.model.subscriptions),
+                )
+            )
+            result = await session.execute(query)
+            user = result.scalar_one_or_none()
+            return user
 
     @classmethod
     async def search_users(cls, query: str):

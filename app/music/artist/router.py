@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 
+from app.music.artist.schemas import DashboardRead
 from app.users.dependencies import CurrentUserDep
 from app.music.artist.service import ArtistService
 
@@ -34,5 +35,5 @@ async def get_album_info(album_id: int, user: CurrentUserDep):
 
 
 @router.get("/")
-async def dashboard(user: CurrentUserDep):
-    pass
+async def dashboard(user: CurrentUserDep) -> DashboardRead:
+    return await ArtistService.get_dashboard(user)
