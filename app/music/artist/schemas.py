@@ -1,11 +1,17 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from app.music.album.schemas import AlbumRead
 from app.music.song.schemas import SongRead
+
+
+class DailyStat(BaseModel):
+    date: str
+    listens: int
 
 
 class SongStatsRead(SongRead):
     favorites: int
     listens: int
+    daily_stats: list[DailyStat] = Field(serialization_alias="dailyStats")
 
 
 class AlbumStatsRead(AlbumRead):

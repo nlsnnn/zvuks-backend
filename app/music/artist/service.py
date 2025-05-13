@@ -1,6 +1,12 @@
+from datetime import datetime, timedelta
 from app.music.album.dao import AlbumDAO
 from app.music.artist.exceptions import StatsException
-from app.music.artist.schemas import AlbumStatsRead, DashboardRead, SongStatsRead
+from app.music.artist.schemas import (
+    AlbumStatsRead,
+    DailyStat,
+    DashboardRead,
+    SongStatsRead,
+)
 from app.music.favorite.dao import FavoriteAlbumDAO, FavoriteSongDAO
 from app.music.service import MusicService
 from app.music.song.dao import SongDAO
@@ -20,7 +26,7 @@ class ArtistService:
         return MusicService.get_albums_dto(albums, [])
 
     @staticmethod
-    async def get_song_stats(song_id: int, user: User):
+    async def get_song_stats(song_id: int, days: int, user: User):
         song = await SongDAO.find_one_or_none_by_id(song_id)
         if not song:
             raise StatsException("Песня не найдена", 404)
@@ -33,6 +39,7 @@ class ArtistService:
 
         listens = await SongDAO.get_listens_count(song_id)
         favorites = await FavoriteSongDAO.find_all(song_id=song_id)
+        daily_stats = await ArtistService._get_daily_stats(song_id, days)
         return SongStatsRead(
             id=song.id,
             name=song.name,
@@ -42,8 +49,9 @@ class ArtistService:
             is_archive=song.is_archive,
             is_favorite=True,
             artists=artists,
-            favortes=len(favorites),
+            favorites=len(favorites),
             listens=listens,
+            daily_stats=daily_stats,
         )
 
     @staticmethod
@@ -91,6 +99,22 @@ class ArtistService:
             favorite_songs=len(favorite_songs),
             favorite_albums=len(favorite_albums),
         )
+
+    @staticmethod
+    async def _get_daily_stats(song_id: int, days: int):
+        stats = await SongDAO.get_daily_listens_stats(song_id, days)
+        end_date = datetime.now()
+        current_date = end_date - timedelta(days=days)
+        stats_dict = {row.date.date(): row.listens for row in stats}
+        daily_stats = []
+
+        while current_date <= end_date:
+            date_str = current_date.strftime("%Y-%m-%d")
+            listens = stats_dict.get(current_date.date(), 0)
+            daily_stats.append(DailyStat(date=date_str, listens=listens))
+            current_date += timedelta(days=1)
+
+        return daily_stats
 
     @staticmethod
     async def _get_album_listens_count(album_id: int):

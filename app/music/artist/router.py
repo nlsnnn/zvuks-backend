@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, HTTPException
 from loguru import logger
 
@@ -16,11 +17,11 @@ async def get_my_songs(user: CurrentUserDep):
 
 
 @router.get("/songs/{song_id}")
-async def get_song_info(song_id: int, user: CurrentUserDep):
+async def get_song_info(song_id: int, user: CurrentUserDep, days: Optional[int] = 90):
     try:
-        return await ArtistService.get_song_stats(song_id, user)
+        return await ArtistService.get_song_stats(song_id, days, user)
     except StatsException as e:
-        raise HTTPException(status_code=e.status_code, detail=str(e))
+        raise HTTPException(status_code=e.status_code, detail=e.message)
     except Exception as e:
         logger.error(e)
         raise HTTPException(status_code=500)
