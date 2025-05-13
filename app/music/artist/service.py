@@ -8,14 +8,17 @@ from app.users.schemas import SUserRead
 
 
 class ArtistService:
+    @staticmethod
     async def get_my_songs(user: User):
         songs = await SongDAO.find_all(user_id=user.id)
         return await MusicService.get_songs_dto(songs)
 
+    @staticmethod
     async def get_my_albums(user: User):
         albums = await AlbumDAO.find_all(user_id=user.id)
         return MusicService.get_albums_dto(albums, [])
 
+    @staticmethod
     async def get_song_stats(song_id: int, user: User):
         song = await SongDAO.find_one_or_none_by_id(song_id)
         if not song:
@@ -38,10 +41,11 @@ class ArtistService:
             is_archive=song.is_archive,
             is_favorite=True,
             artists=artists,
-            favorites=favorites,
+            favortes=favorites,
             listens=listens,
         )
 
+    @staticmethod
     async def get_album_stats(album_id: int, user: User):
         album = await AlbumDAO.find_one_or_none_by_id(album_id)
         if not album:
@@ -68,9 +72,9 @@ class ArtistService:
             listens=listens,
         )
 
+    @staticmethod
     async def _get_album_listens_count(album_id: int):
         songs = await SongDAO.find_all(album_id=album_id)
-        listens = 0
-        for song in songs:
-            listens += await SongDAO.get_listens_count(song.id)
+        song_ids = [song.id for song in songs]
+        listens = await SongDAO.get_listens_count_for_songs(song_ids)
         return listens

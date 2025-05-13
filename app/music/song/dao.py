@@ -65,3 +65,10 @@ class SongDAO(BaseDAO):
             query = select(ListenEvent).filter(ListenEvent.song_id == song_id)
             result = await session.execute(query)
             return len(result.scalars().all())
+
+    @classmethod
+    async def get_listens_count_for_songs(cls, song_ids: list[int]) -> int:
+        async with async_session_maker() as session:
+            query = select(ListenEvent).filter(ListenEvent.song_id.in_(song_ids))
+            result = await session.execute(query)
+            return len(result.scalars().all())
