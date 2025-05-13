@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from app.dao.base import BaseDAO
 from app.friends.dao import FriendsDAO
-from app.users.models import User
+from app.users.models import User, ArtistSubscriber
 from app.database import async_session_maker
 
 
@@ -32,3 +32,7 @@ class UsersDAO(BaseDAO):
             )
 
         return users_with_status
+
+
+class ArtistSubscriberDAO(BaseDAO):
+    model = ArtistSubscriber

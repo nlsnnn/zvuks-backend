@@ -4,7 +4,7 @@ from app.music.favorite.dao import FavoriteSongDAO
 from app.music.service import MusicService
 from app.music.song.dao import SongDAO
 from app.services.utils import Utils
-from app.users.dao import UsersDAO
+from app.users.dao import ArtistSubscriberDAO, UsersDAO
 from app.users.models import User
 from app.users.schemas import SUserProfile, SUserRead, SUserUpdate
 
@@ -56,6 +56,29 @@ class UserService:
         user_updated = await UsersDAO.find_one_or_none_by_id(user.id)
         user_dto = UserService.get_user_dto(user_updated)
         return user_dto
+
+    @staticmethod
+    async def subscribe_user(user_id: int, current_user_id: int):
+        exists = await ArtistSubscriberDAO.find_one_or_none(
+            artist_id=user_id, subscriber_id=current_user_id
+        )
+        if exists:
+            raise ValueError("Вы уже подписаны на этого исполнителя")
+        users = await UsersDAO.find_all_by_ids([user_id, current_user_id])
+        if len(users) != 2:
+            raise ValueError("Пользователи не найдены")
+        await ArtistSubscriberDAO.add(artist_id=user_id, subscriber_id=current_user_id)
+
+    @staticmethod
+    async def unsubscribe_user(user_id: int, current_user_id: int):
+        exists = await ArtistSubscriberDAO.find_one_or_none(
+            artist_id=user_id, subscriber_id=current_user_id
+        )
+        if not exists:
+            raise ValueError("Вы не подписаны на этого исполнителя")
+        await ArtistSubscriberDAO.delete(
+            artist_id=user_id, subscriber_id=current_user_id
+        )
 
     @staticmethod
     async def save_avatar(file, user: User):
