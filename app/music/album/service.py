@@ -8,6 +8,7 @@ from app.music.service import MusicService
 from app.music.utils import MusicUtils
 from app.music.album import AlbumDAO, AlbumCreate, AlbumRead
 from app.music.song import SongDAO
+from app.tasks.notify import notify_release
 from app.users.dao import UsersDAO
 from app.users.models import User
 from app.users.schemas import SUserRead
@@ -62,8 +63,11 @@ class AlbumService:
         cover_path = await MusicService.upload_file(
             album_data.cover, directory, ["jpg", "jpeg", "png"]
         )
-        album = await AlbumService.create_album(
-            name, cover_path, album_data.release_date, user_data.id
+        album = await AlbumDAO.add(
+            name=name,
+            cover_path=cover_path,
+            release_date=album_data.release_date,
+            user_id=user_data.id,
         )
 
         if existing_songs := album_data.existing_songs:
@@ -81,14 +85,14 @@ class AlbumService:
             directory,
         )
 
-        return [album, songs]
+        if album_data.notify_subscribers:
+            await notify_release.kiq(
+                artist_id=user_data.id,
+                release_type="album",
+                release=album,
+            )
 
-    @staticmethod
-    async def create_album(name: str, cover_path: str, date: str, user_id: int):
-        album = await AlbumDAO.add(
-            name=name, cover_path=cover_path, release_date=date, user_id=user_id
-        )
-        return album
+        return [album, songs]
 
     @staticmethod
     async def save_album_songs(

@@ -38,7 +38,11 @@ class SongService:
         )
 
         if song_data.notify_subscribers:
-            await notify_release
+            await notify_release.kiq(
+                artist_id=user_data.id,
+                release_type="song",
+                release=song_orm,
+            )
 
         return song_orm
 

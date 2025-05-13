@@ -18,7 +18,7 @@ class EmailService:
         message["Subject"] = subject
 
         if is_html:
-            message.add_alternative(body, subtype='html')
+            message.add_alternative(body, subtype="html")
         else:
             message.set_content(body)
 
@@ -34,13 +34,31 @@ class EmailService:
     @staticmethod
     async def send_reset_password(user: User, link: str):
         template = env.get_template("reset_password.html")
+        content = await template.render_async(username=user.username, reset_link=link)
+
+        await EmailService.send_email(user.email, subject="Сброс пароля", body=content)
+
+    @staticmethod
+    async def send_release_notification(
+        user: User,
+        artist_username: str,
+        release_type: str,
+        release_link: str,
+        release_image: str,
+    ):
+        template = env.get_template("release_notification.html")
         content = await template.render_async(
             username=user.username,
-            reset_link=link
+            artist_username=artist_username,
+            release_type="новую песню" if release_type == "song" else "новый альбом",
+            release_link=release_link,
+            release_image=release_image,
         )
 
         await EmailService.send_email(
             user.email,
-            subject="Сброс пароля",
-            body=content
+            subject=f"Новая песня от {artist_username}"
+            if release_type == "song"
+            else f"Новый альбом от {artist_username}",
+            body=content,
         )
