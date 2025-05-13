@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 
 from app.database import DATABASE_URL, Base
-from app.users.models import User
+from app.users.models import User, ArtistSubscriber
 from app.music.models import (
     Album,
     Song,

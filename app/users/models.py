@@ -1,4 +1,4 @@
-from sqlalchemy import text
+from sqlalchemy import ForeignKey, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base, str_uniq, int_pk
 
@@ -21,13 +21,37 @@ class User(Base):
     songs: Mapped[list["Song"]] = relationship(
         "Song", secondary="song_artists", back_populates="artists"
     )
-    playlists: Mapped[list["Playlist"]] = relationship(
-        back_populates="user"
+    playlists: Mapped[list["Playlist"]] = relationship(back_populates="user")
+    albums: Mapped[list["Album"]] = relationship(back_populates="user")
+    subscribers: Mapped[list["ArtistSubscriber"]] = relationship(
+        "ArtistSubscriber",
+        foreign_keys="[ArtistSubscriber.artist_id]",
+        back_populates="artist",
     )
-    albums: Mapped[list["Album"]] = relationship(
-        back_populates="user"
+    subscriptions: Mapped[list["ArtistSubscriber"]] = relationship(
+        "ArtistSubscriber",
+        foreign_keys="[ArtistSubscriber.subscriber_id]",
+        back_populates="subscriber",
     )
     extend_existing = True
 
     def __repr__(self):
         return f"{self.__class__.__name__}(id={self.id})"
+
+
+class ArtistSubscriber(Base):
+    __tablename__ = "artist_subscribers"
+
+    subscriber_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    artist_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+
+    subscriber: Mapped[User] = relationship(
+        "User", foreign_keys=[subscriber_id], back_populates="subscriptions"
+    )
+    artist: Mapped[User] = relationship(
+        "User", foreign_keys=[artist_id], back_populates="subscribers"
+    )
