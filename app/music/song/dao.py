@@ -74,7 +74,7 @@ class SongDAO(BaseDAO):
             return result.scalar() or 0
 
     @classmethod
-    async def get_daily_listens_stats(cls, song_id: int, days: int = 90):
+    async def get_daily_listens_stats(cls, song_ids: list[int], days: int = 90):
         async with async_session_maker() as session:
             end_date = datetime.now()
             start_date = end_date - timedelta(days=days)
@@ -87,7 +87,7 @@ class SongDAO(BaseDAO):
                     func.count().label("listens"),
                 )
                 .filter(
-                    ListenEvent.song_id == song_id,
+                    ListenEvent.song_id.in_(song_ids),
                     ListenEvent.created_at.between(start_date, end_date),
                 )
                 .group_by(date_trunc)

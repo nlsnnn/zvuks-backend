@@ -39,7 +39,7 @@ class ArtistService:
 
         listens = await SongDAO.get_listens_count(song_id)
         favorites = await FavoriteSongDAO.find_all(song_id=song_id)
-        daily_stats = await ArtistService._get_daily_stats(song_id, days)
+        daily_stats = await ArtistService._get_daily_stats([song_id], days)
         return SongStatsRead(
             id=song.id,
             name=song.name,
@@ -55,7 +55,7 @@ class ArtistService:
         )
 
     @staticmethod
-    async def get_album_stats(album_id: int, user: User):
+    async def get_album_stats(album_id: int, days: int, user: User):
         album = await AlbumDAO.find_one_or_none_by_id(album_id)
         if not album:
             raise StatsException("Альбом не найден", 404)
@@ -67,8 +67,13 @@ class ArtistService:
             username=album.user.username,
             avatar=album.user.avatar_path,
         )
-        listens = await ArtistService._get_album_listens_count(album_id)
+
+        songs = await SongDAO.find_all(album_id=album_id)
+        song_ids = [song.id for song in songs]
+
+        listens = await ArtistService._get_album_listens_count(song_ids)
         favorites = len(await FavoriteAlbumDAO.find_all(album_id=album_id))
+        daily_stats = await ArtistService._get_daily_stats(song_ids, days)
 
         return AlbumStatsRead(
             id=album.id,
@@ -79,6 +84,7 @@ class ArtistService:
             artist=artist,
             favorites=favorites,
             listens=listens,
+            daily_stats=daily_stats,
         )
 
     @staticmethod
@@ -101,8 +107,8 @@ class ArtistService:
         )
 
     @staticmethod
-    async def _get_daily_stats(song_id: int, days: int):
-        stats = await SongDAO.get_daily_listens_stats(song_id, days)
+    async def _get_daily_stats(song_ids: list[int], days: int):
+        stats = await SongDAO.get_daily_listens_stats(song_ids, days)
         end_date = datetime.now()
         current_date = end_date - timedelta(days=days)
         stats_dict = {row.date.date(): row.listens for row in stats}
@@ -117,8 +123,6 @@ class ArtistService:
         return daily_stats
 
     @staticmethod
-    async def _get_album_listens_count(album_id: int):
-        songs = await SongDAO.find_all(album_id=album_id)
-        song_ids = [song.id for song in songs]
+    async def _get_album_listens_count(song_ids: list[int]):
         listens = await SongDAO.get_listens_count_for_songs(song_ids)
         return listens

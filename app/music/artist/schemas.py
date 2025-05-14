@@ -17,6 +17,7 @@ class SongStatsRead(SongRead):
 class AlbumStatsRead(AlbumRead):
     favorites: int
     listens: int
+    daily_stats: list[DailyStat] = Field(serialization_alias="dailyStats")
 
 
 class DashboardRead(BaseModel):
@@ -24,5 +25,5 @@ class DashboardRead(BaseModel):
     subscribers: int
     songs: int
     albums: int
-    favorite_songs: int
-    favorite_albums: int
+    favorite_songs: int = Field(serialization_alias="favoriteSongs")
+    favorite_albums: int = Field(serialization_alias="favoriteAlbums")

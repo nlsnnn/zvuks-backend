@@ -33,9 +33,9 @@ async def get_my_albums(user: CurrentUserDep):
 
 
 @router.get("/albums/{album_id}")
-async def get_album_info(album_id: int, user: CurrentUserDep):
+async def get_album_info(album_id: int, user: CurrentUserDep, days: Optional[int] = 90):
     try:
-        return await ArtistService.get_album_stats(album_id, user)
+        return await ArtistService.get_album_stats(album_id, days, user)
     except StatsException as e:
         raise HTTPException(status_code=e.status_code, detail=str(e))
     except Exception as e:
