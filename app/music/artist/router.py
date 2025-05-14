@@ -2,7 +2,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException
 from loguru import logger
 
-from app.music.artist.exceptions import StatsException
+from app.music.exceptions import StatsException
 from app.music.artist.schemas import DashboardRead
 from app.users.dependencies import CurrentUserDep
 from app.music.artist.service import ArtistService

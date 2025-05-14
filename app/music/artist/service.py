@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from app.music.album.dao import AlbumDAO
-from app.music.artist.exceptions import StatsException
+from app.music.exceptions import StatsException
 from app.music.artist.schemas import (
     AlbumStatsRead,
     DailyStat,
