@@ -1,5 +1,5 @@
 from app.music.album.dao import AlbumDAO
-from app.music.exceptions import SongReadException, SongUpdateException
+from app.music.exceptions import SongCreateException, SongReadException, SongUpdateException
 from app.music.song import SongDAO, SongCreate
 from app.music.service import MusicService
 from app.music.song.schemas import SongUpdate
@@ -26,6 +26,8 @@ class SongService:
 
     @staticmethod
     async def add_song(song_data: SongCreate, user_data: User):
+        if not user_data.is_user:
+            raise SongCreateException("Нет прав на создание песни", 403)
         name = song_data.name
 
         directory = MusicUtils.get_directory_name("songs", name, user_data)

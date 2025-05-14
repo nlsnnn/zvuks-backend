@@ -37,10 +37,13 @@ class SongDAO(BaseDAO):
             return sorted_songs
 
     @classmethod
-    async def get_latest(cls, limit: int = 10):
+    async def get_latest(cls, days: int, limit: int = 10):
         async with async_session_maker() as session:
+            start_date = datetime.now() - timedelta(days=days)
+            end_date = datetime.now()
             query = (
                 select(cls.model)
+                .filter(cls.model.created_at.between(start_date, end_date))
                 .order_by(cls.model.created_at.desc())
                 .limit(limit)
                 .options(selectinload(cls.model.artists))

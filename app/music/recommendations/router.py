@@ -24,3 +24,8 @@ async def listen_song(song_id: int, user: CurrentUserDep):
 @router.get("/new/songs")
 async def get_new_songs(user: OptionalUserDep):
     return await RecommendationsService.get_new_songs(user.id if user else None)
+
+
+@router.get("/most-liked/songs")
+async def get_favorites_songs(user: CurrentUserDep):
+    return await RecommendationsService.get_favorites_songs(user.id)
