@@ -3,6 +3,7 @@ from typing import Optional
 from fastapi import HTTPException, UploadFile, status
 
 from app.music.album.schemas import ExistingSong
+from app.music.exceptions import AlbumCreateException
 from app.music.favorite.dao import FavoriteAlbumDAO
 from app.music.service import MusicService
 from app.music.utils import MusicUtils
@@ -151,9 +152,9 @@ class AlbumService:
         song_path = await MusicService.upload_file(song, directory, ["mp3", "wav"])
 
         if len(song_artists_ids) < 1:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="В треке должен быть как минимум 1 артист",
+            raise AlbumCreateException(
+                status_code=400,
+                message="В треке должен быть как минимум 1 артист",
             )
         song_artists = await UsersDAO.find_all_by_ids(song_artists_ids)
 
@@ -176,9 +177,9 @@ class AlbumService:
             if s.track_number not in track_numbers:
                 track_numbers.append(s.track_number)
             else:
-                raise ValueError(
+                raise AlbumCreateException(
                     "Порядковые номера существующих песен должны быть разными"
                 )
             song = await SongDAO.find_one_or_none_by_id(s.song_id)
             if song.album_id or song.track_number:
-                raise ValueError("Песня уже добавлена в другой альбом")
+                raise AlbumCreateException("Песня уже добавлена в другой альбом")

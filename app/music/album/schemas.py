@@ -45,7 +45,7 @@ class AlbumCreate(MusicCreate, CoverCreate):  # TODO: refactor
             alias="songArtistsIds", description="Артисты на треке"
         ),
         existing_songs: Optional[list[ExistingSong]] = Form(
-            alias="existingSongs", description="Существующие песни"
+            alias="existingSongs", description="Существующие песни", default=None
         ),
     ):
         try:

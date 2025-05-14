@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
+from loguru import logger
 
 from app.music.album import AlbumDAO, AlbumCreate
 from app.music.album.service import AlbumService
+from app.music.exceptions import AlbumCreateException
 from app.users.dependencies import CurrentUserDep, OptionalUserDep
 
 
@@ -31,16 +33,14 @@ async def add_album(
     user_data: CurrentUserDep,
     album_data: AlbumCreate = Depends(AlbumCreate.as_form),
 ) -> dict:
-    album, songs = await AlbumService.add_album(album_data, user_data)
-
-    return {
-        "album": {
-            "id": album.id,
-            "name": album_data.name,
-            "release_date": album_data.release_date,
-            "songs": songs,
-        }
-    }
+    try:
+        await AlbumService.add_album(album_data, user_data)
+        return {"message": "Альбом успешно создан"}
+    except AlbumCreateException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=500)
 
 
 @router.patch("/{album_id}")
