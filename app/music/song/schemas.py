@@ -15,7 +15,6 @@ class SongUpdate(BaseModel):
     album_id: Optional[int] = Field(alias="albumId", default=None)
     track_number: Optional[int] = Field(alias="trackNumber", default=None)
     is_archive: Optional[int] = Field(alias="archive", default=None)
-    cover_path: Optional[str] = Field(alias="cover", default=None)
 
 
 class SongRead(BaseModel):

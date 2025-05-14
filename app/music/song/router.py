@@ -1,6 +1,8 @@
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
+from loguru import logger
 
+from app.music.exceptions import SongReadException, SongUpdateException
 from app.music.song.service import SongService
 from app.users.dependencies import (
     OptionalUserDep,
@@ -19,12 +21,14 @@ async def get_all_songs(user: OptionalUserDep, archive: Optional[bool] = False):
 
 
 @router.get("/{song_id}/")
-async def get_song(song_id: int):
-    song = await SongDAO.find_one_or_none_by_id(song_id)
-    if not song:
-        raise HTTPException(status_code=404, detail="Song not found")
-
-    return {"song_path": song.path, "cover_path": song.cover_path}
+async def get_song(song_id: int, user: OptionalUserDep):
+    try:
+        return await SongService.get_song(song_id, user_id=user.id if user else None)
+    except SongReadException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
 @router.post("/")
@@ -46,8 +50,11 @@ async def add_song(
 async def update_song(song_id: int, data: SongUpdate, user: CurrentUserDep):
     try:
         await SongService.update_song(song_id, data, user)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except SongUpdateException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=500, detail="Internal Server Error")
     return {"message": "Песня обновлена"}
 
 

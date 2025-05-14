@@ -1,3 +1,5 @@
+from app.music.album.dao import AlbumDAO
+from app.music.exceptions import SongReadException, SongUpdateException
 from app.music.song import SongDAO, SongCreate
 from app.music.service import MusicService
 from app.music.song.schemas import SongUpdate
@@ -13,6 +15,14 @@ class SongService:
         songs = await SongDAO.find_all(**{"is_archive": archive})
         data = await MusicService.get_songs_dto(songs, user_id)
         return data
+
+    @staticmethod
+    async def get_song(song_id: int, user_id: int = None):
+        song = await SongDAO.find_one_or_none_by_id(song_id)
+        if not song:
+            raise SongReadException(status_code=404, message="Песня не найдена")
+        data = await MusicService.get_songs_dto([song], user_id)
+        return data[0]
 
     @staticmethod
     async def add_song(song_data: SongCreate, user_data: User):
@@ -50,9 +60,17 @@ class SongService:
     async def update_song(song_id: int, song_data: SongUpdate, user: User):
         song = await SongDAO.find_one_or_none_by_id(song_id)
         if not song:
-            raise ValueError("Песня не найдена")
+            raise SongUpdateException("Песня не найдена", 404)
         if song.user_id != user.id:
-            raise ValueError("Нет прав на редактирование этой песни")
+            raise SongUpdateException("Нет прав на редактирование этой песни", 403)
+        if song_data.album_id:
+            album = await AlbumDAO.find_one_or_none_by_id(song_data.album_id)
+            if not album:
+                raise SongUpdateException("Альбом не найден", 404)
+            if album.user_id != user.id:
+                raise SongUpdateException(
+                    "Нет прав на редактирование этого альбома", 403
+                )
         await SongDAO.update(
             filter_by={"id": song_id}, **song_data.model_dump(exclude_none=True)
         )
