@@ -35,7 +35,9 @@ class RecommendationsDAO:
                 return new_instance
 
     @classmethod
-    async def get_favorites_songs(cls, days: int, limit: int = 10):
+    async def get_favorites_songs(
+        cls, days: int, limit: int = 10, archive: bool = False
+    ):
         async with async_session_maker() as session:
             start_date = datetime.now() - timedelta(days=days)
             end_date = datetime.now()

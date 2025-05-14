@@ -37,24 +37,29 @@ class SongDAO(BaseDAO):
             return sorted_songs
 
     @classmethod
-    async def search(cls, query: str, limit: int = 10):
+    async def search(cls, query: str, limit: int = 10, archive: bool = False):
         async with async_session_maker() as session:
             query = (
                 select(cls.model)
-                .filter(cls.model.name.ilike(f"%{query}%"))
+                .filter(
+                    cls.model.name.ilike(f"%{query}%"), cls.model.is_archive == archive
+                )  # noqa: E712
                 .limit(limit)
             )
             result = await session.execute(query)
             return result.scalars().all()
 
     @classmethod
-    async def get_latest(cls, days: int, limit: int = 10):
+    async def get_latest(cls, days: int, limit: int = 10, archive: bool = False):
         async with async_session_maker() as session:
             start_date = datetime.now() - timedelta(days=days)
             end_date = datetime.now()
             query = (
                 select(cls.model)
-                .filter(cls.model.created_at.between(start_date, end_date))
+                .filter(
+                    cls.model.created_at.between(start_date, end_date),
+                    cls.model.is_archive == archive,
+                )  # noqa: E712
                 .order_by(cls.model.created_at.desc())
                 .limit(limit)
                 .options(selectinload(cls.model.artists))

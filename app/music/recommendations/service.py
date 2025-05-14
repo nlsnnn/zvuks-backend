@@ -7,8 +7,8 @@ from app.music.song.dao import SongDAO
 class RecommendationsService:
     @staticmethod
     async def popular_songs(user_id: int | None = None, limit: int = 10):
-        song_ids = await RecommendationsDAO.top_by_plays()
-        songs = await SongDAO.find_all_by_ids(song_ids)
+        song_ids = await RecommendationsDAO.top_by_plays(limit=limit)
+        songs = await SongDAO.find_all_by_ids(song_ids, is_archive=False)
         return await MusicService.get_songs_dto(songs, user_id)
 
     @staticmethod
@@ -42,6 +42,6 @@ class RecommendationsService:
 
     @staticmethod
     async def get_favorites_songs(user_id: int, limit: int = 10):
-        song_ids = await RecommendationsDAO.get_favorites_songs(days=7)
-        songs = await SongDAO.find_all_by_ids(song_ids)
+        song_ids = await RecommendationsDAO.get_favorites_songs(days=7, limit=limit)
+        songs = await SongDAO.find_all_by_ids(song_ids, is_archive=False)
         return await MusicService.get_songs_dto(songs, user_id)
