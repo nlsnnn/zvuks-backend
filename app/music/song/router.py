@@ -62,3 +62,8 @@ async def update_song(song_id: int, data: SongUpdate, user: CurrentUserDep):
 async def delete_song(song_id: int):
     await SongDAO.delete(id=song_id)
     return {"message": f"Song {song_id} successfull deleted!"}
+
+
+@router.get("/search")
+async def search_songs(query: str, user: OptionalUserDep):
+    return await SongService.search_songs(query, user.id if user else None)

@@ -1,5 +1,9 @@
 from app.music.album.dao import AlbumDAO
-from app.music.exceptions import SongCreateException, SongReadException, SongUpdateException
+from app.music.exceptions import (
+    SongCreateException,
+    SongReadException,
+    SongUpdateException,
+)
 from app.music.song import SongDAO, SongCreate
 from app.music.service import MusicService
 from app.music.song.schemas import SongUpdate
@@ -23,6 +27,11 @@ class SongService:
             raise SongReadException(status_code=404, message="Песня не найдена")
         data = await MusicService.get_songs_dto([song], user_id)
         return data[0]
+
+    @staticmethod
+    async def search_songs(query: str, user_id: int):
+        songs = await SongDAO.search(query.strip())
+        return await MusicService.get_songs_dto(songs, user_id)
 
     @staticmethod
     async def add_song(song_data: SongCreate, user_data: User):

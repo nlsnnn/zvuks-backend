@@ -51,6 +51,13 @@ class AlbumService:
         return data
 
     @staticmethod
+    async def search_albums(query: str, user_id: int):
+        albums = await AlbumDAO.search(query.strip())
+        favorites = await FavoriteAlbumDAO.find_all(user_id=user_id)
+        favorite_ids = [f.album_id for f in favorites]
+        return MusicService.get_albums_dto(albums, favorite_ids)
+
+    @staticmethod
     async def get_album_songs(album_id: int, user_id: Optional[int]):
         songs = await SongDAO.find_all(album_id=album_id)
         data = await MusicService.get_songs_dto(songs, user_id)

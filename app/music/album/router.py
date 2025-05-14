@@ -16,6 +16,11 @@ async def get_all_albums(user: OptionalUserDep):
     return {"albums": albums}
 
 
+@router.get("/search")
+async def search_albums(query: str, user: OptionalUserDep):
+    return await AlbumService.search_albums(query, user.id if user else None)
+
+
 @router.get("/{album_id}")
 async def get_album(album_id: int, user: OptionalUserDep):
     album = await AlbumService.get_album(album_id, user.id if user else None)
