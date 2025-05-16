@@ -22,6 +22,13 @@ class SUserAuth(BaseModel):
     )
 
 
+class SUserAuthResponse(BaseModel):
+    access_token: str = Field(serialization_alias="accessToken")
+    refresh_token: Optional[str] = Field(
+        serialization_alias="refreshToken", default=None
+    )
+
+
 class SPasswordResetRequest(BaseModel):
     email: EmailStr
 
@@ -48,6 +55,7 @@ class SUserRead(BaseModel):
     id: int
     username: str
     avatar: str
+    role: Optional[str] = Field(default=None)
 
 
 class SUserProfile(SUserRead):

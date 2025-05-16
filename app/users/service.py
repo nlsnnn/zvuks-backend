@@ -23,6 +23,13 @@ class UserService:
             for user in users
         ]
         return data
+    
+    @staticmethod
+    def get_me(user: User):
+        role = UserService.get_role(user)
+        return SUserRead(
+            id=user.id, username=user.username, avatar=user.avatar_path, role=role
+        )
 
     @staticmethod
     async def get_profile(user_id: int):
@@ -89,3 +96,11 @@ class UserService:
     @staticmethod
     def get_directory_name(user: User):
         return f"avatars/{user.id}"
+
+    @staticmethod
+    def get_role(user: User):
+        if user.is_admin:
+            return "admin"
+        if user.is_user:
+            return "user"
+        return "block"

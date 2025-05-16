@@ -15,6 +15,7 @@ from app.users.schemas import (
     SPasswordReset,
     SUserAuth,
     SPasswordResetRequest,
+    SUserAuthResponse,
     SUserRegister,
     SUserProfile,
     SUserRead,
@@ -49,7 +50,7 @@ async def login_user(response: Response, user_data: SUserAuth) -> dict:
 
     access_token = create_access_token({"sub": str(user.id)})
     response.set_cookie(key="users_access_token", value=access_token, httponly=True)
-    return {"access_token": access_token, "refresh_token": None}
+    return SUserAuthResponse(access_token=access_token).model_dump()
 
 
 @router.post("/logout/")
@@ -82,18 +83,18 @@ async def reset_password(data: SPasswordReset):
     return {"message": "Пароль успешно изменен"}
 
 
-@router.post("/user/update", response_model=SUserRead)
+@router.post("/user/update")
 async def update_user(
     user_data: CurrentUserDep,
     data: SUserUpdate = Depends(SUserUpdate.as_form),
-):
+) -> SUserRead:
     data = await UserService.update_user(data, user_data)
     return data
 
 
-@router.get("/me/", response_model=SUserRead)
-async def get_me(user_data: CurrentUserDep):
-    return UserService.get_user_dto(user_data)
+@router.get("/me/")
+async def get_me(user_data: CurrentUserDep) -> SUserRead:
+    return UserService.get_me(user_data)
 
 
 @router.get("/all_users/")
@@ -104,8 +105,8 @@ async def get_all_users(
     return {"users": users}
 
 
-@router.get("/user/{user_id}", response_model=SUserRead)
-async def get_user(user_id: int, user_data: CurrentAdminDep):
+@router.get("/user/{user_id}")
+async def get_user(user_id: int, user_data: CurrentAdminDep) -> SUserRead:
     user = await UsersDAO.find_one_or_none_by_id(user_id)
     data = UserService.get_user_dto(user)
     return data
@@ -117,8 +118,8 @@ async def find_user(query: str, user_data: CurrentUserDep):
     return {"users": users}
 
 
-@router.get("/user/profile/{user_id}", response_model=SUserProfile)
-async def get_user_profile(user_id: int, user_data: CurrentUserDep):
+@router.get("/user/profile/{user_id}")
+async def get_user_profile(user_id: int, user_data: CurrentUserDep) -> SUserProfile:
     profile_data = await UserService.get_profile(user_id)
 
     return profile_data
