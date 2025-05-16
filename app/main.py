@@ -8,9 +8,12 @@ from app.chat.router import router as chat_router
 from app.admin.router import router as admin_router
 from app.music import music_router
 
+from app.error_handlers import register_error_handlers
+
 logger.add("logs/{time}.log", rotation="12:00")
 
 app = FastAPI()
+register_error_handlers(app)
 
 origins = [
     "http://localhost:5173",
