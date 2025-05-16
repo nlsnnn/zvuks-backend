@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from app.music.album.dao import AlbumDAO
 from app.music.exceptions import (
     SongCreateException,
@@ -47,6 +48,9 @@ class SongService:
             song_data.song, directory, ["mp3", "wav"]
         )
 
+        release_date = song_data.release_date.replace(tzinfo=timezone.utc)
+        release_now = release_date <= datetime.now(tz=timezone.utc) 
+
         artists = await UsersDAO.find_all_by_ids(song_data.artist_ids)
 
         song_orm = await SongDAO.add(
@@ -56,6 +60,7 @@ class SongService:
             release_date=song_data.release_date,
             user_id=user_data.id,
             artists=artists,
+            is_archive=not release_now,
         )
 
         if song_data.notify_subscribers:
