@@ -46,6 +46,7 @@ class UserService:
             avatar=user.avatar_path,
             songs=songs_dto,
             bio=user.bio,
+            blocked=not user.is_user
         )
 
         return data

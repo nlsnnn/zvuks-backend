@@ -61,3 +61,4 @@ class SUserRead(BaseModel):
 class SUserProfile(SUserRead):
     bio: Optional[str] = Field(default=None)
     songs: list
+    blocked: bool = Field(default=False)
