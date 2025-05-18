@@ -39,6 +39,7 @@ class SongDAO(BaseDAO):
     @classmethod
     async def search(cls, query: str, limit: int = 10, archive: bool = False):
         async with async_session_maker() as session:
+            """SELECT * FROM songs as s WHERE s.name ILIKE '%query%' AND s.is_archive = archive LIMIT limit"""
             query = (
                 select(cls.model)
                 .filter(
@@ -54,6 +55,7 @@ class SongDAO(BaseDAO):
         async with async_session_maker() as session:
             start_date = datetime.now() - timedelta(days=days)
             end_date = datetime.now()
+            """"SELECT * FROM songs as s WHERE s.create_at BETWEEN start_date AND end_date AND s.is_archive = archive ORDER BY s.create_at DESC LIMIT limit"""
             query = (
                 select(cls.model)
                 .filter(
@@ -76,7 +78,14 @@ class SongDAO(BaseDAO):
                 cls.model.release_date <= now,
             )
             result = await session.execute(query)
-            return result.scalars().all()
+            songs = result.scalars().all()
+            return_songs = []
+            for song in songs:
+                if not song.user.is_user:
+                    continue
+                return_songs.append(song)
+
+            return return_songs
 
     @classmethod
     async def get_listens_count(cls, song_id: int) -> int:

@@ -18,6 +18,9 @@ class User(Base):
         default=False, server_default=text("false"), nullable=False
     )
 
+    user_songs: Mapped[list["Song"]] = relationship(
+        "Song", back_populates="user", foreign_keys="[Song.user_id]"
+    )
     songs: Mapped[list["Song"]] = relationship(
         "Song", secondary="song_artists", back_populates="artists"
     )

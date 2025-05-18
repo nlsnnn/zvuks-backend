@@ -42,6 +42,7 @@ class Song(Base):
     playlists: Mapped[list["Playlist"]] = relationship(
         secondary="playlist_songs", back_populates="songs"
     )
+    user: Mapped[User] = relationship(back_populates="user_songs", lazy="selectin")
 
 
 class SongArtist(Base):
