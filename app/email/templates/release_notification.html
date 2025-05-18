@@ -1,5 +1,38 @@
-<h2>Новый релиз</h2>
-<p>Привет, {{ username }}!</p>
-<p>Исполнитель {{ artist_username }}, на которого ты подписан, выпустил {{ release_type }}</p>
-<a href="{{ release_link }}">Переходи и слушай прямо сейчас!</a>
-<img src="{{ release_image }}" alt="Обложка релиза" style="width: 200px; height: 200px;">
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap");
+  body {
+    font-family: "Manrope", sans-serif;
+    text-align: center;
+  }
+
+  .default {
+    color: black;
+    text-decoration: none;
+  }
+
+  .hovered {
+    color: #2563eb;
+    text-decoration: underline;
+    transition: 0.2s;
+  }
+</style>
+
+<div>
+  <h2>Новый релиз!</h2>
+  <p>Привет, {{ username }}!</p>
+  <p>
+    Исполнитель {{ artist_username }}, на которого ты подписан, выпустил {{
+    release_type }}
+  </p>
+  <a
+    onmouseover="this.classList='hovered'"
+    onmouseout="this.classList='default'"
+    href="{{ release_link }}"
+    class="default"
+    >Переходи и слушай прямо сейчас!
+    <img
+      src="{{ release_image }}"
+      alt="Обложка релиза"
+      style="width: 200px; height: 200px"
+  /></a>
+</div>
