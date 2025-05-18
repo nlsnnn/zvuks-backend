@@ -1,4 +1,5 @@
 from fastapi import status
+from loguru import logger
 
 from app.music.album.dao import AlbumDAO
 from app.music.song.dao import SongDAO
@@ -36,6 +37,9 @@ class AdminService:
         await UsersDAO.update(filter_by={"id": user_id}, is_user=False)
         await SongDAO.update(filter_by={"user_id": user_id}, is_archive=True)
         await AlbumDAO.update(filter_by={"user_id": user_id}, is_archive=True)
+        logger.info(
+            f"Пользователь {user.username} был заблокирован администратором {current_user.username}"
+        )
 
     @staticmethod
     async def unblock_user(user_id: int, current_user: User):
@@ -60,3 +64,6 @@ class AdminService:
         await UsersDAO.update(filter_by={"id": user_id}, is_user=True)
         await SongDAO.update(filter_by={"user_id": user_id}, is_archive=False)
         await AlbumDAO.update(filter_by={"user_id": user_id}, is_archive=False)
+        logger.info(
+            f"Пользователь {user.username} был разблокирован администратором {current_user.username}"
+        )

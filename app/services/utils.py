@@ -13,7 +13,7 @@ class Utils:
     async def upload_file(file: UploadFile, directory: str, allowed_formats: list[str]):
         file_format = Utils.get_file_format(file)
         if file_format not in allowed_formats:
-            return HTTPException(400, f"Недопустимый формат файла: {file_format}")
+            raise HTTPException(400, f"Недопустимый формат файла: {file_format}")
 
         file_content = await file.read()
         filename = f"{uuid.uuid4()}.{file_format}"
