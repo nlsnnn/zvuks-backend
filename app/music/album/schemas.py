@@ -34,7 +34,7 @@ class AlbumCreate(MusicCreate, CoverCreate):  # TODO: refactor
         cls,
         name: str = Form(alias="title"),
         release_date: str = Form(alias="releaseDate"),
-        notify_subscribers: bool = Form(default=False),
+        notify_subscribers: bool = Form(default=False, alias="notifySubscribers"),
         cover: UploadFile = File(...),
         songs: list[UploadFile] = File(...),
         song_names: list[str] = Form(alias="songNames"),

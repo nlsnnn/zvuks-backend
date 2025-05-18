@@ -49,7 +49,7 @@ class SongService:
         )
 
         release_date = song_data.release_date.replace(tzinfo=timezone.utc)
-        release_now = release_date <= datetime.now(tz=timezone.utc) 
+        release_now = release_date <= datetime.now(tz=timezone.utc)
 
         artists = await UsersDAO.find_all_by_ids(song_data.artist_ids)
 
@@ -63,11 +63,13 @@ class SongService:
             is_archive=not release_now,
         )
 
+
         if song_data.notify_subscribers:
             await notify_release.kiq(
                 artist_id=user_data.id,
                 release_type="song",
-                release=song_orm,
+                release_id=song_orm.id,
+                release_cover=song_orm.cover_path,
             )
 
         return song_orm
