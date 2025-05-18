@@ -68,6 +68,7 @@ SQLAlchemy==2.0.36
 starlette==0.41.3
 taskiq==0.11.17
 taskiq-dependencies==1.5.7
+taskiq-fastapi==0.3.5
 taskiq-nats==0.5.1
 taskiq-redis==1.0.8
 typer==0.13.1

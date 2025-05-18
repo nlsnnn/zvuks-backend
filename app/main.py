@@ -1,5 +1,7 @@
 from fastapi import FastAPI
+from fastapi.concurrency import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
+
 from loguru import logger
 
 from app.users.router import router as user_router
@@ -8,11 +10,25 @@ from app.chat.router import router as chat_router
 from app.admin.router import router as admin_router
 from app.music import music_router
 
+from app.tq import broker
 from app.error_handlers import register_error_handlers
 
-logger.add("logs/{time}.log", rotation="12:00")
 
-app = FastAPI()
+logger.add("logs/app_{time}.log", rotation="12:00", level="INFO", encoding="utf-8")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    if not broker.is_worker_process:
+        print(f"startup broker: {broker.is_worker_process=}")
+        await broker.startup()
+    yield
+    if broker.is_worker_process:
+        logger.info("Shutting down broker")
+        await broker.shutdown()
+
+
+app = FastAPI(lifespan=lifespan)
 register_error_handlers(app)
 
 origins = [
