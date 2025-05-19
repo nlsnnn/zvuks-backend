@@ -120,7 +120,7 @@ async def find_user(query: str, user_data: CurrentUserDep):
 
 @router.get("/user/profile/{user_id}")
 async def get_user_profile(user_id: int, user_data: CurrentUserDep) -> SUserProfile:
-    profile_data = await UserService.get_profile(user_id)
+    profile_data = await UserService.get_profile(user_id, user_data)
 
     return profile_data
 

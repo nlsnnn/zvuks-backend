@@ -23,7 +23,7 @@ class UserService:
             for user in users
         ]
         return data
-    
+
     @staticmethod
     def get_me(user: User):
         role = UserService.get_role(user)
@@ -32,7 +32,7 @@ class UserService:
         )
 
     @staticmethod
-    async def get_profile(user_id: int):
+    async def get_profile(user_id: int, current_user: User):
         user = await UsersDAO.find_one_or_none_by_id(user_id)
         if not user:
             raise NoUserException
@@ -40,13 +40,17 @@ class UserService:
         favorite_ids = [favorite.song_id for favorite in favorites]
         songs = await SongDAO.find_all_by_ids(favorite_ids)
         songs_dto = await MusicService.get_songs_dto(songs[:5])
+        subscribed = await ArtistSubscriberDAO.find_one_or_none(
+            subscriber_id=current_user.id, artist_id=user_id
+        )
         data = SUserProfile(
             id=user.id,
             username=user.username,
             avatar=user.avatar_path,
             songs=songs_dto,
             bio=user.bio,
-            blocked=not user.is_user
+            subscribed=True if subscribed else False,
+            blocked=not user.is_user,
         )
 
         return data
@@ -67,6 +71,8 @@ class UserService:
 
     @staticmethod
     async def subscribe_user(user_id: int, current_user_id: int):
+        if user_id == current_user_id:
+            raise ValueError("Нельзя подписаться на самого себя")
         exists = await ArtistSubscriberDAO.find_one_or_none(
             artist_id=user_id, subscriber_id=current_user_id
         )

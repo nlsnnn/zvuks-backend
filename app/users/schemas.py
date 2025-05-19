@@ -62,3 +62,4 @@ class SUserProfile(SUserRead):
     bio: Optional[str] = Field(default=None)
     songs: list
     blocked: bool = Field(default=False)
+    subscribed: bool = Field(default=False)
