@@ -1,93 +1,67 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
+from typing import Annotated
 
 from app.friends.schemas import SFriendRequest
 from app.friends.service import FriendRequestService
 from app.users.models import User
-from app.users.dependencies import get_current_user
+from app.users.dependencies import CurrentUserDep
 
 
-router = APIRouter(prefix='/friends', tags=['Friends'])
+router = APIRouter(prefix="/friends", tags=["Friends"])
 
 
-@router.get('/')
-async def get_friends(
-    user_data: User = Depends(get_current_user)
-):
+@router.get("/")
+async def get_friends(user_data: Annotated[User, Depends(CurrentUserDep)]):
     friends = await FriendRequestService.get_friends(user_data.id)
-    return {'friends': friends}
+    return {"friends": friends}
 
 
-@router.get('/pending')
-async def get_pending_requests(
-    user_data: User = Depends(get_current_user)
-):
+@router.get("/pending")
+async def get_pending_requests(user_data: Annotated[User, Depends(CurrentUserDep)]):
     requests = await FriendRequestService.get_pending_requests(user_data.id)
-    return {'requests': requests}
+    return {"requests": requests}
 
 
-@router.get('/sended')
-async def get_sended_requests(
-    user_data: User = Depends(get_current_user)
-):
+@router.get("/sended")
+async def get_sended_requests(user_data: Annotated[User, Depends(CurrentUserDep)]):
     requests = await FriendRequestService.get_sended_requests(user_data.id)
-    return {'requests': requests}
+    return {"requests": requests}
 
 
-@router.post('/')
+@router.post("/")
 async def send_friend_request(
-    data: SFriendRequest,
-    user_data: User = Depends(get_current_user)
+    data: SFriendRequest, user_data: Annotated[User, Depends(CurrentUserDep)]
 ):
-    if data.user_received_id == user_data.id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cant add yourself" # TODO detail
-        )
-
-    result = await FriendRequestService.send_friend_request(
-        user_sended_id=user_data.id,
-        user_received_id=data.user_received_id
+    await FriendRequestService.send_friend_request(
+        user_sended_id=user_data.id, user_received_id=data.user_received_id
     )
-    if not result:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Already sended" # todo Different details
-        )
 
-    return {'message': 'Friend request sent!'}
+    return {"message": "Запрос отправлен"}
 
 
-@router.post('/accept')
+@router.post("/accept")
 async def accept_friend_request(
-    request: SFriendRequest,
-    user_data: User = Depends(get_current_user)
+    request: SFriendRequest, user_data: Annotated[User, Depends(CurrentUserDep)]
 ):
     await FriendRequestService.accept_friend_request(
-        request.user_sended_id,
-        user_data.id
+        request.user_sended_id, user_data.id
     )
-    return {'message': 'Friend request accepted'}
+    return {"message": "Запрос принят"}
 
 
-@router.post('/reject')
+@router.post("/reject")
 async def reject_friend_request(
-    request: SFriendRequest,
-    user_data: User = Depends(get_current_user)
+    request: SFriendRequest, user_data: Annotated[User, Depends(CurrentUserDep)]
 ):
     await FriendRequestService.reject_friend_request(
-        user_sended_id=request.user_sended_id,
-        user_received_id=user_data.id
+        user_sended_id=request.user_sended_id, user_received_id=user_data.id
     )
-    return {'message': 'Friendship deleted'}
+    return {"message": "Дружба отклонена"}
 
 
-@router.post('/delete')
+@router.post("/delete")
 async def delete_friend(
-    request: SFriendRequest,
-    user_data: User = Depends(get_current_user)
+    request: SFriendRequest, user_data: Annotated[User, Depends(CurrentUserDep)]
 ):
-    await FriendRequestService.delete_friend(
-        request.user_id,
-        user_data.id
-    )
-    return {'message': 'Friend deleted'}
+    await FriendRequestService.delete_friend(request.user_id, user_data.id)
+    return {"message": "Друг удален"}

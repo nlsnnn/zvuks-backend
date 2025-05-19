@@ -5,6 +5,7 @@ from pydantic import ValidationError
 from sqlalchemy.exc import DatabaseError
 
 from app.admin.exceptions import admin_exception_handler
+from app.friends.exceptions import friends_exception_handler
 
 
 def register_error_handlers(app: FastAPI):
@@ -33,4 +34,6 @@ def register_error_handlers(app: FastAPI):
         )
 
     for exc_class, handler in admin_exception_handler:
+        app.add_exception_handler(exc_class, handler)
+    for exc_class, handler in friends_exception_handler:
         app.add_exception_handler(exc_class, handler)
