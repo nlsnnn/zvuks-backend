@@ -57,7 +57,7 @@ class SongService:
             name=name,
             path=song_path,
             cover_path=cover_path,
-            release_date=song_data.release_date,
+            release_date=release_date.replace(tzinfo=None),
             user_id=user_data.id,
             artists=artists,
             is_archive=not release_now,

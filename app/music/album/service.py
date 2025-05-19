@@ -97,7 +97,8 @@ class AlbumService:
             await notify_release.kiq(
                 artist_id=user_data.id,
                 release_type="album",
-                release=album,
+                release_id=album.id,
+                release_cover=album.cover_path,
             )
 
         return [album, songs]

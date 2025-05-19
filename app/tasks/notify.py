@@ -45,7 +45,7 @@ async def send_single_notification(
             user=user,
             artist_username=artist.username,
             release_type=release_type,
-            release_link=f"https://127.0.0.1:5173/profile/{artist_id}",
+            release_link=f"http://localhost:5173/profile/{artist_id}",
             release_image=release_cover,
         )
         logger.info(

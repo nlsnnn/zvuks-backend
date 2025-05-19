@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 from app.dao.base import BaseDAO
@@ -72,7 +72,7 @@ class SongDAO(BaseDAO):
     @classmethod
     async def get_to_publish(cls):
         async with async_session_maker() as session:
-            now = datetime.now()  # tz =timezone.utc
+            now = datetime.now(tz=timezone.utc).replace(tzinfo=None)
             query = select(cls.model).filter(
                 cls.model.is_archive == True,  # noqa: E712
                 cls.model.release_date <= now,
