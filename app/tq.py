@@ -5,6 +5,10 @@ from taskiq.schedule_sources import LabelScheduleSource
 from taskiq_nats import PullBasedJetStreamBroker
 from taskiq_redis import RedisAsyncResultBackend, RedisScheduleSource
 from app.config import get_redis_url, get_nats_url
+from app.logger import setup_logger
+
+
+setup_logger("taskiq")
 
 
 redis_url = get_redis_url()

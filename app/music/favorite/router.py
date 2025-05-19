@@ -42,7 +42,6 @@ async def add_favorite_album(
 
 @router.delete("/song", status_code=204)
 async def remove_favorite_song(data: SFavoriteSongRequest, user_data: CurrentUserDep):
-    print(f"{data=}")
     await FavoriteService.delete_song(data.song_id, user_data.id)
 
 
