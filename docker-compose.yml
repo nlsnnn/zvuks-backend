@@ -1,8 +1,48 @@
-version: "3.9"
-
 services:
+  app: &app
+    build: .
+    ports:
+      - "8080:8080"
+    restart: always
+    env_file:
+      - /app/.env.prod
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_started
+
+  taskiq-worker:
+    <<: *app
+    ports: []
+    command: [ taskiq, worker, -fsd, app.tq:broker, -w, "1", --max-fails, "1" ]
+
+  taskiq-scheduler:
+    <<: *app
+    ports: []
+    command: [ taskiq, scheduler, -fsd, app.tq:scheduler ]
+
+  db:
+    image: postgres:16-alpine
+    hostname: db
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    restart: always
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   nats:
     image: nats:latest
+    hostname: nats
     entrypoint: /nats-server
     command: "-c /config/server.conf"
     ports:
@@ -11,9 +51,19 @@ services:
     volumes:
       - ./nats/data:/data
       - ./nats/config/server.conf:/config/server.conf
+    healthcheck:
+      test:
+        - "CMD"
+        - "sh"
+        - "-c"
+        - "wget http://localhost:8222/healthz -q -O - | xargs | grep ok || exit 1"
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   redis:
     image: redis:latest
+    hostname: redis
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - REDIS_USER=${REDIS_USER}
@@ -42,7 +92,7 @@ services:
         redis-server /usr/local/etc/redis/redis.conf --aclfile /usr/local/etc/redis/users.acl
       '
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "$REDIS_PASSWORD", "ping"]
+      test: [ "CMD", "redis-cli", "-a", "$REDIS_PASSWORD", "ping" ]
       interval: 30s
       timeout: 10s
       retries: 5
