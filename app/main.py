@@ -33,6 +33,8 @@ register_error_handlers(app)
 
 origins = [
     "http://localhost:5173",
+    "http://frontend",
+    "http://localhost",
 ]
 
 app.add_middleware(

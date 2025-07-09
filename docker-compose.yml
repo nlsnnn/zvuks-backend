@@ -1,11 +1,11 @@
 services:
-  app: &app
+  backend: &app
     build: .
     ports:
       - "8080:8080"
     restart: always
     env_file:
-      - /app/.env.prod
+      - .env
     depends_on:
       db:
         condition: service_healthy
@@ -29,6 +29,8 @@ services:
     hostname: db
     expose:
       - 5432
+    ports:
+      - "5432:5432"
     environment:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -99,3 +101,8 @@ services:
     restart: unless-stopped
     tty: true
     stdin_open: true
+
+networks:
+  default:
+    name: zvuks-network
+    external: true
