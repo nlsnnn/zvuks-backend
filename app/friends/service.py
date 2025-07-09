@@ -12,7 +12,7 @@ class FriendRequestService:
         if user_received_id == user_received_id:
             raise FriendsException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Нельзя добавить в друзья самого себя",
+                message="Нельзя добавить в друзья самого себя",
             )
 
         friendship = await FriendsDAO.get_friendship(user_received_id, user_sended_id)
@@ -24,14 +24,14 @@ class FriendRequestService:
             elif friendship.status in (FriendStatus.pending, FriendStatus.friends):
                 raise FriendsException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Уже отправлена заявка в друзья",
+                    message="Уже отправлена заявка в друзья",
                 )
 
         users = await UsersDAO.find_all_by_ids([user_received_id, user_sended_id])
         if len(users) != 2:
             raise FriendsException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Пользователи не найдены",
+                message="Пользователи не найдены",
             )
 
         return await FriendsDAO.add(
