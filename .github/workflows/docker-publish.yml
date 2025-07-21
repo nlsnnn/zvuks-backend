@@ -1,0 +1,24 @@
+name: Build & Push to Private Registry
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Docker login
+        run: |
+          echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ secrets.REGISTRY_URL }} -u ${{ secrets.REGISTRY_USERNAME }} --password-stdin
+
+      - name: Build and push
+        run: |
+          docker build -t ${{ secrets.REGISTRY_URL }}/zvuks-backend:latest .
+          docker push ${{ secrets.REGISTRY_URL }}/zvuks-backend:latest
