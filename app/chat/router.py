@@ -1,12 +1,13 @@
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Depends
 from app.chat.dao import MessagesDAO
-from app.chat.schemas import MessageCreate, MessageEdit, MessageRead
+from app.chat.schemas import MessageCreate, MessageEdit, MessageRead, MessagePublish
 from app.users.dao import UsersDAO
 from app.users.dependencies import get_current_user
 from app.users.models import User
 from app.chat.websocket import WebSocketManager, get_websocket_manager
 from app.users.service import UserService
-
+from app.connections.nats import NatsClient
+from app.services.nats import NatsService
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
@@ -73,6 +74,16 @@ async def send_message(
 
     await manager.notify_user(user_data.id, message_data.model_dump())
     await manager.notify_user(message.recipient, message_data.model_dump())
+
+    nats_js = await NatsClient.get_jetstream()
+    await NatsService.publish_message_ai(
+        nats_js,
+        message_data=MessagePublish(
+            text=message_data.content,
+            message_id=message_data.id,
+            user_id=message_data.sender,
+        ),
+    )
 
     return {
         "recipient": message.recipient,

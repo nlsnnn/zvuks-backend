@@ -20,3 +20,9 @@ class MessageCreate(BaseModel):
 class MessageEdit(BaseModel):
     id: int
     content: str
+
+
+class MessagePublish(BaseModel):
+    text: str
+    message_id: int
+    user_id: int
