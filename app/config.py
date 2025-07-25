@@ -43,6 +43,10 @@ class NatsConfig(BaseModel):
     port: int
 
 
+class AIMessageServiceConfig(BaseModel):
+    subject: str
+
+
 class SMTPConfig(BaseModel):
     host: str
     port: int
@@ -64,6 +68,7 @@ class Settings(BaseSettings):
     redis: RedisConfig
     nats: NatsConfig
     smtp: SMTPConfig
+    message_ai: AIMessageServiceConfig
 
 
 settings = Settings()
